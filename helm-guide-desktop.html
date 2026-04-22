@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#040d18">
+<title>Helm Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:      #040d18;
+  --surface: #071628;
+  --card:    #0a1e34;
+  --border:  rgba(42,100,148,.32);
+  --border2: rgba(42,100,148,.16);
+  --gold:    #e8b840;
+  --gdim:    #9a7318;
+  --sky:     #5ab8e8;
+  --green:   #28c870;
+  --red:     #e84030;
+  --amber:   #e88020;
+  --cream:   #f0e8d0;
+  --muted:   #4a6880;
+  --sidebar: 240px;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body {
+  width:100%; height:100%;
+  background:var(--bg); color:var(--cream);
+  font-family:'IBM Plex Sans', -apple-system, sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+
+/* ═══════════════════════════════════════════
+   DESKTOP LAYOUT
+═══════════════════════════════════════════ */
+#app { display:flex; width:100%; height:100vh; overflow:hidden; }
+
+/* SIDEBAR */
+#sidebar {
+  width:var(--sidebar); flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  overflow:hidden; position:relative; z-index:20;
+}
+#sidebar::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(90,184,232,.07), transparent 60%);
+  pointer-events:none;
+}
+.sb-logo {
+  padding:22px 18px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.sb-logo-title {
+  font-family:'Playfair Display', serif;
+  font-size:1.3rem; font-weight:900; color:var(--gold);
+  display:flex; align-items:center; gap:9px;
+}
+.sb-logo-sub {
+  font-family:'IBM Plex Mono', monospace;
+  font-size:.48rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--muted); margin-top:5px;
+}
+.sb-voyage {
+  padding:12px 18px 10px;
+  border-bottom:1px solid var(--border2);
+  flex-shrink:0;
+}
+.sb-voyage-lbl { font-size:.48rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.sb-voyage-name { font-family:'Playfair Display', serif; font-size:.92rem; font-weight:700; color:var(--cream); line-height:1.25; }
+.sb-voyage-dates { font-family:'IBM Plex Mono', monospace; font-size:.56rem; color:var(--sky); margin-top:3px; }
+.sb-nav { flex:1; overflow-y:auto; padding:8px 0; }
+.sb-nav::-webkit-scrollbar { display:none; }
+.sb-section-lbl { font-size:.46rem; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); padding:10px 18px 4px; opacity:.6; }
+.sb-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 18px; cursor:pointer;
+  border-left:3px solid transparent;
+  transition:all .15s; user-select:none;
+}
+.sb-item:hover { background:rgba(90,184,232,.06); }
+.sb-item.active { background:rgba(232,184,64,.07); border-left-color:var(--gold); }
+.sb-item.active .sb-item-label { color:var(--gold); }
+.sb-item.active .sb-item-icon { color:var(--gold); }
+.sb-item-icon { font-size:1rem; width:22px; text-align:center; color:var(--muted); flex-shrink:0; }
+.sb-item-label { font-size:.78rem; font-weight:500; color:var(--muted); letter-spacing:.02em; }
+.sb-item.active .sb-badge, .sb-badge {
+  margin-left:auto; background:rgba(232,64,48,.18);
+  border:1px solid rgba(232,64,48,.3); color:#f06050;
+  font-size:.5rem; padding:2px 6px; border-radius:999px; font-weight:600;
+}
+.sb-day-list { padding:0 10px; }
+.sb-day {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 8px; border-radius:8px; cursor:pointer;
+  transition:background .15s; margin-bottom:2px;
+}
+.sb-day:hover { background:rgba(90,184,232,.07); }
+.sb-day.active { background:rgba(232,184,64,.09); }
+.sb-day-num {
+  width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.58rem; font-weight:700; flex-shrink:0;
+  background:var(--border2); color:var(--muted); border:1px solid var(--border);
+}
+.sb-day.active .sb-day-num { background:rgba(232,184,64,.15); color:var(--gold); border-color:rgba(232,184,64,.3); }
+.sb-day.done .sb-day-num { background:rgba(40,200,112,.1); color:var(--green); border-color:rgba(40,200,112,.25); }
+.sb-day-info { flex:1; min-width:0; }
+.sb-day-name { font-size:.7rem; font-weight:500; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sb-day.active .sb-day-name { color:var(--gold); }
+.sb-day-date { font-family:'IBM Plex Mono', monospace; font-size:.52rem; color:var(--muted); margin-top:1px; }
+.sb-footer {
+  padding:12px 18px; border-top:1px solid var(--border2);
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+}
+.sb-status-dot { width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px rgba(40,200,112,.5); flex-shrink:0; }
+.sb-status-dot.offline { background:var(--amber); box-shadow:0 0 8px rgba(232,128,32,.5); }
+.sb-status-text { font-size:.56rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+
+/* MAIN CONTENT */
+#main {
+  flex:1; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+#topbar {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:14px 28px; display:flex; align-items:center;
+  justify-content:space-between; flex-shrink:0; gap:16px;
+}
+.tb-left { display:flex; flex-direction:column; }
+.tb-title { font-family:'Playfair Display', serif; font-size:1.1rem; font-weight:700; color:var(--gold); }
+.tb-sub { font-family:'IBM Plex Mono', monospace; font-size:.56rem; letter-spacing:.14em; text-transform:uppercase; color:var(--sky); margin-top:2px; }
+.tb-actions { display:flex; gap:8px; align-items:center; }
+.tb-btn {
+  padding:8px 14px; border-radius:8px; cursor:pointer; font-size:.72rem;
+  font-weight:600; letter-spacing:.04em; border:1px solid var(--border);
+  background:rgba(90,184,232,.08); color:var(--sky); transition:all .15s;
+  font-family:'IBM Plex Sans', sans-serif;
+}
+.tb-btn:hover { background:rgba(90,184,232,.16); }
+.tb-btn.gold { background:rgba(232,184,64,.1); border-color:rgba(232,184,64,.3); color:var(--gold); }
+.tb-btn.gold:hover { background:rgba(232,184,64,.2); }
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; padding:6px; }
+.hamburger span { display:block; width:22px; height:2px; background:var(--cream); border-radius:2px; transition:all .2s; }
+
+#content {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:24px 28px 32px;
+}
+#content::-webkit-scrollbar { width:6px; }
+#content::-webkit-scrollbar-track { background:transparent; }
+#content::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* PANELS */
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* ═══════════════════════════════════════════
+   GRID SYSTEM
+═══════════════════════════════════════════ */
+.dash-grid { display:grid; gap:18px; }
+.grid-2 { grid-template-columns:1fr 1fr; }
+.grid-3 { grid-template-columns:1fr 1fr 1fr; }
+.grid-4 { grid-template-columns:repeat(4,1fr); }
+.grid-1-2 { grid-template-columns:1fr 2fr; }
+.grid-2-1 { grid-template-columns:2fr 1fr; }
+.col-span-2 { grid-column:span 2; }
+.col-span-3 { grid-column:span 3; }
+.col-span-4 { grid-column:span 4; }
+
+/* ═══════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════ */
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
+}
+.card-hd {
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px;
+}
+.card-title { font-family:'Playfair Display', serif; font-size:.95rem; font-weight:700; color:var(--cream); }
+.card-sub { font-family:'IBM Plex Mono', monospace; font-size:.5rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+.card-badge {
+  padding:3px 9px; border-radius:4px; font-size:.56rem; letter-spacing:.1em;
+  font-family:'IBM Plex Mono', monospace;
+  background:rgba(232,184,64,.1); border:1px solid rgba(232,184,64,.22); color:var(--gold);
+}
+.card-badge.sky { background:rgba(90,184,232,.1); border-color:rgba(90,184,232,.22); color:var(--sky); }
+.card-badge.green { background:rgba(40,200,112,.1); border-color:rgba(40,200,112,.22); color:var(--green); }
+.card-badge.red { background:rgba(232,64,48,.1); border-color:rgba(232,64,48,.22); color:#f06050; }
+.card-badge.amber { background:rgba(232,128,32,.1); border-color:rgba(232,128,32,.22); color:var(--amber); }
+.card-body { padding:16px 18px; }
+
+/* ═══════════════════════════════════════════
+   STAT TILES
+═══════════════════════════════════════════ */
+.stat-tile {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:18px 20px;
+  display:flex; flex-direction:column; gap:6px;
+  position:relative; overflow:hidden;
+}
+.stat-tile::before {
+  content:''; position:absolute; top:-20px; right:-20px;
+  width:80px; height:80px; border-radius:50%;
+  background:radial-gradient(circle, rgba(90,184,232,.06), transparent 70%);
+}
+.stat-label { font-size:.52rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
+.stat-value { font-family:'Playfair Display', serif; font-size:2rem; font-weight:900; color:var(--gold); line-height:1; }
+.stat-value.sky { color:var(--sky); }
+.stat-value.green { color:var(--green); }
+.stat-value.cream { color:var(--cream); }
+.stat-sub { font-family:'IBM Plex Mono', monospace; font-size:.6rem; color:var(--muted); }
+
+/* ═══════════════════════════════════════════
+   PROGRESS STRIP
+═══════════════════════════════════════════ */
+.voyage-progress { padding:16px 18px; }
+.prog-label { font-size:.52rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+.prog-stops { display:flex; gap:0; align-items:center; }
+.prog-stop { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
+.prog-dot-wrap { position:relative; width:100%; display:flex; align-items:center; }
+.prog-line { flex:1; height:3px; background:var(--border2); transition:background .3s; }
+.prog-line.done { background:var(--gdim); }
+.prog-line.cur { background:var(--gold); }
+.prog-dot {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.6rem; font-weight:700; font-family:'IBM Plex Mono', monospace;
+  background:var(--card); border:2px solid var(--border); color:var(--muted);
+  transition:all .2s; z-index:1;
+}
+.prog-stop.done .prog-dot { background:rgba(144,100,20,.2); border-color:var(--gdim); color:var(--gdim); }
+.prog-stop.cur .prog-dot { background:rgba(232,184,64,.15); border-color:var(--gold); color:var(--gold); box-shadow:0 0 12px rgba(232,184,64,.3); }
+.prog-stop-name { font-size:.56rem; color:var(--muted); text-align:center; max-width:70px; line-height:1.3; }
+.prog-stop.cur .prog-stop-name { color:var(--gold); }
+.prog-stop.done .prog-stop-name { color:var(--gdim); }
+.prog-status { font-family:'IBM Plex Mono', monospace; font-size:.62rem; color:var(--sky); margin-top:12px; letter-spacing:.06em; }
+
+/* ═══════════════════════════════════════════
+   HERO DAY CARD
+═══════════════════════════════════════════ */
+.hero-card {
+  background:linear-gradient(135deg, #0c2240, #0a1830);
+  border:1px solid var(--border); border-radius:14px; overflow:hidden;
+}
+.hero-card-hd {
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border2);
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+.hero-day-num {
+  font-family:'Playfair Display', serif;
+  font-size:5rem; font-weight:900;
+  color:rgba(232,184,64,.12); line-height:1; letter-spacing:-.02em;
+  user-select:none;
+}
+.hero-right { text-align:right; }
+.hero-date { font-family:'IBM Plex Mono', monospace; font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--sky); margin-bottom:6px; }
+.hero-nm { font-family:'Playfair Display', serif; font-size:1.8rem; font-weight:900; color:var(--gold); }
+.hero-hrs { font-family:'IBM Plex Mono', monospace; font-size:.62rem; color:var(--muted); margin-top:3px; }
+.hero-card-body { padding:18px 24px; }
+.hero-marina-lbl { font-size:.5rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.hero-marina { font-family:'Playfair Display', serif; font-size:1.3rem; font-weight:700; color:var(--cream); margin-bottom:16px; line-height:1.25; }
+.hero-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.tag { padding:4px 10px; border-radius:5px; font-size:.58rem; letter-spacing:.07em; text-transform:uppercase; font-weight:600; }
+.tf { background:rgba(40,200,112,.12); color:#28c870; border:1px solid rgba(40,200,112,.25); }
+.tw { background:rgba(232,64,48,.12); color:#f06050; border:1px solid rgba(232,64,48,.25); }
+.td { background:rgba(40,120,80,.15); color:#60d090; border:1px solid rgba(40,120,80,.3); }
+.ti { background:rgba(90,184,232,.1); color:var(--sky); border:1px solid rgba(90,184,232,.2); }
+.ta { background:rgba(232,128,32,.12); color:var(--amber); border:1px solid rgba(232,128,32,.25); }
+
+/* ═══════════════════════════════════════════
+   GPS COORD BLOCK
+═══════════════════════════════════════════ */
+.coord-block {
+  background:rgba(0,16,36,.8); border:2px solid var(--sky);
+  border-radius:10px; padding:14px 16px; margin-bottom:14px;
+}
+.coord-lbl { font-size:.52rem; letter-spacing:.2em; text-transform:uppercase; color:var(--sky); margin-bottom:8px; }
+.coord-val { font-family:'IBM Plex Mono', monospace; font-size:1rem; font-weight:600; color:#fff; line-height:1.9; letter-spacing:.04em; }
+.coord-extra { font-family:'IBM Plex Mono', monospace; font-size:.68rem; color:var(--amber); margin-top:6px; line-height:1.6; }
+.copy-btn {
+  display:block; width:100%; margin-top:10px; padding:10px;
+  background:rgba(90,184,232,.08); border:1px solid rgba(90,184,232,.25);
+  border-radius:6px; color:var(--sky); font-size:.58rem; letter-spacing:.16em;
+  text-transform:uppercase; cursor:pointer; text-align:center;
+  font-family:'IBM Plex Sans', sans-serif; transition:background .15s;
+}
+.copy-btn:hover { background:rgba(90,184,232,.18); }
+
+/* ═══════════════════════════════════════════
+   NAV / WARN / FUEL BLOCKS
+═══════════════════════════════════════════ */
+.nav-blk {
+  background:rgba(0,24,50,.6); border-left:3px solid var(--sky);
+  border-radius:0 8px 8px 0; padding:12px 14px; margin-bottom:10px;
+}
+.blk-t { font-size:.52rem; letter-spacing:.18em; text-transform:uppercase; margin-bottom:5px; font-weight:600; }
+.nav-blk .blk-t { color:var(--sky); }
+.blk-body { font-size:.8rem; line-height:1.75; color:rgba(240,232,208,.82); }
+.warn-blk { background:rgba(232,64,48,.08); border:1px solid rgba(232,64,48,.28); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+.warn-blk .blk-t { color:#f06050; }
+.fuel-blk { background:rgba(232,128,32,.08); border:1px solid rgba(232,128,32,.24); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+.fuel-blk .blk-t { color:var(--amber); }
+
+/* ═══════════════════════════════════════════
+   GO/NO-GO CARD
+═══════════════════════════════════════════ */
+.decision-inputs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px; }
+.inp-group label { display:block; font-size:.52rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+.inp-group select, .inp-group input {
+  width:100%; background:rgba(0,0,0,.4); border:1px solid var(--border);
+  border-radius:8px; color:var(--cream); font-size:.85rem; padding:10px 12px;
+  outline:none; -webkit-appearance:none; font-family:'IBM Plex Sans', sans-serif;
+  transition:border-color .15s;
+}
+.inp-group select:focus, .inp-group input:focus { border-color:var(--sky); }
+.decision-result {
+  border-radius:10px; padding:14px 16px;
+  border:1px solid var(--border); background:rgba(0,16,36,.5);
+}
+.decision-result.go { border-color:rgba(40,200,112,.35); background:rgba(40,200,112,.07); }
+.decision-result.caution { border-color:rgba(232,128,32,.35); background:rgba(232,128,32,.08); }
+.decision-result.nogo { border-color:rgba(232,64,48,.38); background:rgba(232,64,48,.07); }
+.dr-label { font-size:.52rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.dr-value { font-family:'Playfair Display', serif; font-size:1.4rem; font-weight:900; }
+.decision-result.go .dr-value { color:var(--green); }
+.decision-result.caution .dr-value { color:var(--gold); }
+.decision-result.nogo .dr-value { color:#f06050; }
+.dr-copy { font-size:.75rem; line-height:1.65; color:rgba(240,232,208,.82); margin-top:5px; }
+.weather-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.wchip {
+  display:inline-flex; align-items:center; gap:6px; padding:8px 12px;
+  border-radius:999px; border:1px solid rgba(90,184,232,.22);
+  background:rgba(90,184,232,.07); color:var(--sky);
+  font-size:.65rem; text-decoration:none; cursor:pointer;
+  font-family:'IBM Plex Sans', sans-serif; transition:background .15s;
+}
+.wchip:hover { background:rgba(90,184,232,.15); }
+
+/* ═══════════════════════════════════════════
+   WEATHER CARD
+═══════════════════════════════════════════ */
+.weather-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.weather-stat { background:rgba(90,184,232,.05); border:1px solid rgba(90,184,232,.12); border-radius:10px; padding:12px 14px; }
+.ws-label { font-size:.5rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+.ws-value { font-family:'Playfair Display', serif; font-size:1.2rem; font-weight:700; color:var(--cream); }
+.ws-sub { font-size:.64rem; color:var(--muted); margin-top:4px; line-height:1.4; }
+.weather-status { display:flex; align-items:center; gap:8px; font-size:.64rem; color:var(--muted); margin-bottom:10px; }
+.wdot { width:8px; height:8px; border-radius:50%; background:var(--amber); flex-shrink:0; }
+.wdot.ok { background:var(--green); box-shadow:0 0 8px rgba(40,200,112,.4); }
+.wdot.bad { background:#f06050; }
+.weather-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.w-btn {
+  display:inline-flex; align-items:center; gap:6px; padding:9px 13px;
+  border-radius:9px; border:1px solid rgba(90,184,232,.18);
+  background:rgba(90,184,232,.07); color:var(--sky);
+  font-size:.66rem; font-weight:600; text-decoration:none; cursor:pointer;
+  font-family:'IBM Plex Sans', sans-serif; transition:all .15s; min-height:38px;
+}
+.w-btn:hover { background:rgba(90,184,232,.16); }
+.w-btn.gold { border-color:rgba(232,184,64,.22); background:rgba(232,184,64,.07); color:var(--gold); }
+.w-btn.green { border-color:rgba(40,200,112,.22); background:rgba(40,200,112,.07); color:var(--green); }
+
+/* ═══════════════════════════════════════════
+   EMERGENCY HARBORS
+═══════════════════════════════════════════ */
+.emerg-card {
+  background:rgba(38,18,0,.6); border:1px solid rgba(180,100,20,.3);
+  border-radius:10px; overflow:hidden; margin-bottom:10px;
+}
+.emerg-hd {
+  background:rgba(60,28,0,.8); padding:12px 16px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+.emerg-name { font-size:.95rem; font-weight:600; color:var(--amber); line-height:1.2; }
+.emerg-dist { font-size:.58rem; color:rgba(180,140,80,.7); margin-top:2px; }
+.emerg-body { padding:12px 16px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.emerg-coords { font-family:'IBM Plex Mono', monospace; font-size:.78rem; color:rgba(200,170,100,.9); line-height:1.85; grid-column:span 2; }
+.emerg-phone a { font-size:.75rem; color:var(--amber); text-decoration:none; }
+.emerg-why { font-size:.72rem; color:rgba(220,180,120,.8); line-height:1.55; grid-column:span 2; }
+.vbdg {
+  display:inline-block; padding:3px 9px;
+  background:rgba(232,184,64,.1); border:1px solid rgba(232,184,64,.22);
+  border-radius:4px; font-size:.58rem; letter-spacing:.1em;
+  font-family:'IBM Plex Mono', monospace; color:var(--gold);
+}
+
+/* ═══════════════════════════════════════════
+   GPS TAB
+═══════════════════════════════════════════ */
+.wpt-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden; margin-bottom:10px;
+}
+.wpt-hd {
+  background:rgba(0,16,36,.7); padding:12px 16px;
+  display:flex; align-items:center; gap:12px;
+  border-bottom:1px solid var(--border2);
+}
+.wpt-badge {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.72rem; font-weight:700; flex-shrink:0;
+  background:rgba(40,200,112,.15); color:var(--green);
+  border:2px solid rgba(40,200,112,.35);
+}
+.wpt-badge.emerg { background:rgba(232,128,32,.15); color:var(--amber); border-color:rgba(232,128,32,.35); font-size:.6rem; }
+.wpt-badge.dest { background:rgba(232,184,64,.15); color:var(--gold); border-color:rgba(232,184,64,.35); }
+.wpt-name { font-size:.92rem; font-weight:600; color:var(--cream); }
+.wpt-sub { font-size:.56rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+.wpt-body { padding:12px 16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.wpt-coords { font-family:'IBM Plex Mono', monospace; font-size:.9rem; font-weight:600; color:var(--sky); line-height:1.85; flex:1; }
+
+/* ═══════════════════════════════════════════
+   CONTACTS TAB
+═══════════════════════════════════════════ */
+.contact-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden; margin-bottom:10px;
+}
+.contact-hd { background:rgba(0,16,36,.6); padding:12px 16px; border-bottom:1px solid var(--border2); }
+.contact-name { font-size:.92rem; font-weight:600; color:var(--cream); }
+.contact-sub { font-size:.56rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+.contact-body { padding:12px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.contact-coords { font-family:'IBM Plex Mono', monospace; font-size:.72rem; color:var(--sky); }
+.call-btn {
+  display:inline-flex; align-items:center; gap:8px; padding:10px 16px;
+  background:rgba(40,200,112,.1); border:1px solid rgba(40,200,112,.25);
+  border-radius:8px; color:var(--green); font-size:.75rem; font-weight:600;
+  text-decoration:none; transition:background .15s;
+}
+.call-btn:hover { background:rgba(40,200,112,.2); }
+.call-btn.amber { background:rgba(232,128,32,.1); border-color:rgba(232,128,32,.25); color:var(--amber); }
+
+/* ═══════════════════════════════════════════
+   FUEL TAB
+═══════════════════════════════════════════ */
+.fuel-row {
+  display:flex; align-items:center; padding:13px 18px;
+  border-bottom:1px solid var(--border2); gap:14px;
+}
+.fuel-row:last-child { border:none; }
+.fuel-info { flex:1; }
+.fuel-marina { font-size:.85rem; font-weight:500; color:var(--cream); }
+.fuel-day { font-size:.56rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+.fuel-inputs { display:flex; gap:8px; align-items:center; }
+.fuel-inp {
+  width:80px; background:rgba(0,0,0,.4); border:1px solid var(--border);
+  border-radius:7px; color:var(--cream); font-size:.82rem; padding:8px 10px;
+  text-align:center; -webkit-appearance:none; outline:none;
+  font-family:'IBM Plex Mono', monospace; transition:border-color .15s;
+}
+.fuel-inp:focus { border-color:var(--sky); }
+.fuel-total { font-family:'Playfair Display', serif; font-size:.95rem; font-weight:700; color:var(--gold); min-width:60px; text-align:right; }
+.no-fuel-badge { font-size:.7rem; color:#f06050; font-weight:600; }
+.fuel-summary {
+  background:rgba(0,16,36,.8); padding:16px 18px;
+  border-top:1px solid var(--border);
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+}
+.fs-item { text-align:center; }
+.fs-value { font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
+.fs-label { font-size:.5rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:3px; }
+
+/* ═══════════════════════════════════════════
+   VESSEL TAB
+═══════════════════════════════════════════ */
+.vessel-hero {
+  background:linear-gradient(160deg, #091e3a, #0c2848);
+  border:1px solid var(--border); border-radius:14px; padding:24px 28px 20px;
+  margin-bottom:18px; position:relative; overflow:hidden;
+}
+.vessel-hero::before {
+  content:''; position:absolute; top:-30px; right:-30px;
+  width:180px; height:180px; border-radius:50%;
+  background:radial-gradient(circle, rgba(232,184,64,.06), transparent 70%);
+}
+.vessel-name { font-family:'Playfair Display', serif; font-size:2rem; font-weight:900; color:var(--gold); line-height:1.1; }
+.vessel-make { font-size:.78rem; color:var(--sky); margin-top:5px; letter-spacing:.06em; }
+.vessel-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:20px; }
+.vs-pill { background:rgba(0,0,0,.3); border:1px solid var(--border2); border-radius:10px; padding:12px 10px; text-align:center; }
+.vs-val { font-family:'Playfair Display', serif; font-size:1.1rem; font-weight:700; color:var(--cream); }
+.vs-lbl { font-size:.48rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:3px; }
+.profile-section-title { font-size:.52rem; letter-spacing:.2em; text-transform:uppercase; color:var(--sky); margin-bottom:10px; padding-bottom:7px; border-bottom:1px solid var(--border2); }
+.profile-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border2); }
+.profile-row:last-child { border:none; }
+.pr-label { font-size:.7rem; color:var(--muted); }
+.pr-value { font-family:'IBM Plex Mono', monospace; font-size:.78rem; font-weight:600; color:var(--cream); text-align:right; }
+.pr-value.gold { color:var(--gold); }
+.pr-value.sky { color:var(--sky); }
+
+/* ═══════════════════════════════════════════
+   ALERTS TAB
+═══════════════════════════════════════════ */
+.alert-card { border-radius:12px; overflow:hidden; margin-bottom:10px; }
+.alert-card.danger { background:rgba(232,64,48,.08); border:1px solid rgba(232,64,48,.28); }
+.alert-card.warn { background:rgba(232,128,32,.08); border:1px solid rgba(232,128,32,.24); }
+.alert-card.info { background:rgba(90,184,232,.06); border:1px solid rgba(90,184,232,.2); }
+.alert-card.ok { background:rgba(40,200,112,.06); border:1px solid rgba(40,200,112,.2); }
+.alert-inner { padding:14px 18px; display:flex; align-items:flex-start; gap:14px; }
+.alert-icon { font-size:1.4rem; flex-shrink:0; margin-top:1px; }
+.alert-title { font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; font-weight:700; margin-bottom:5px; }
+.danger .alert-title { color:#f06050; }
+.warn .alert-title { color:var(--amber); }
+.info .alert-title { color:var(--sky); }
+.ok .alert-title { color:var(--green); }
+.alert-body { font-size:.8rem; line-height:1.65; color:rgba(240,232,208,.85); }
+.vhf-table { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.vhf-row { display:flex; align-items:center; padding:12px 18px; border-bottom:1px solid var(--border2); gap:16px; }
+.vhf-row:last-child { border:none; }
+.vhf-ch { font-family:'IBM Plex Mono', monospace; font-size:.9rem; font-weight:600; color:var(--gold); width:60px; flex-shrink:0; }
+.vhf-ch.red { color:#f06050; }
+.vhf-use { font-size:.76rem; color:rgba(240,232,208,.85); line-height:1.4; }
+
+/* ═══════════════════════════════════════════
+   FUEL RANGE PLANNER
+═══════════════════════════════════════════ */
+.range-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.range-stat { background:rgba(90,184,232,.05); border:1px solid rgba(90,184,232,.12); border-radius:10px; padding:12px 14px; text-align:center; }
+.rs-val { font-family:'Playfair Display', serif; font-size:1.3rem; font-weight:900; color:var(--gold); }
+.rs-lbl { font-size:.5rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:3px; }
+.rs-val.ok { color:var(--green); }
+.rs-val.warn { color:var(--amber); }
+.rs-val.no { color:#f06050; }
+.leg-table { width:100%; border-collapse:collapse; }
+.leg-table th { font-size:.5rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); padding:8px 0; text-align:left; border-bottom:1px solid var(--border2); }
+.leg-table td { font-size:.74rem; color:var(--cream); padding:9px 0; border-bottom:1px solid var(--border2); }
+.leg-table tr:last-child td { border:none; }
+.leg-ok { color:var(--green); font-weight:600; }
+.leg-warn { color:var(--amber); font-weight:600; }
+.leg-no { color:#f06050; font-weight:600; }
+
+/* ═══════════════════════════════════════════
+   SOS / EMERGENCY
+═══════════════════════════════════════════ */
+.sos-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.sos-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:16px 10px; border-radius:12px; text-decoration:none; font-weight:700;
+  font-size:.8rem; letter-spacing:.04em; border:1px solid transparent;
+  transition:all .15s; cursor:pointer; font-family:'IBM Plex Sans', sans-serif;
+}
+.sos-btn.red { background:rgba(232,64,48,.14); border-color:rgba(232,64,48,.32); color:#ff8f86; }
+.sos-btn.amber { background:rgba(232,128,32,.12); border-color:rgba(232,128,32,.28); color:#ffc26c; }
+.sos-btn.sky { background:rgba(90,184,232,.1); border-color:rgba(90,184,232,.22); color:var(--sky); }
+.sos-btn:hover { filter:brightness(1.2); }
+.pos-box { background:rgba(0,0,0,.3); border:1px solid rgba(90,184,232,.14); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+.pos-main { font-family:'IBM Plex Mono', monospace; font-size:.85rem; font-weight:600; color:var(--cream); }
+.pos-sub { font-size:.64rem; color:var(--muted); margin-top:4px; line-height:1.5; }
+
+/* ═══════════════════════════════════════════
+   MOBILE NAV (bottom bar)
+═══════════════════════════════════════════ */
+#mobile-nav { display:none; }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — TABLET
+═══════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .grid-4 { grid-template-columns:1fr 1fr; }
+  .col-span-4 { grid-column:span 2; }
+  .vessel-stats { grid-template-columns:repeat(3,1fr); }
+}
+@media (max-width: 900px) {
+  .grid-3 { grid-template-columns:1fr 1fr; }
+  .grid-2-1, .grid-1-2 { grid-template-columns:1fr; }
+  .col-span-3 { grid-column:span 2; }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — MOBILE
+═══════════════════════════════════════════ */
+@media (max-width: 680px) {
+  :root { --sidebar:0px; }
+  #app { flex-direction:column; }
+  #sidebar { display:none; }
+  #sidebar.open {
+    display:flex; position:fixed; inset:0; z-index:100;
+    width:80%; max-width:300px; animation:slideIn .2s ease;
+  }
+  @keyframes slideIn { from { transform:translateX(-100%); } to { transform:translateX(0); } }
+  #sidebar-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+    z-index:99; backdrop-filter:blur(4px);
+  }
+  #sidebar-overlay.show { display:block; }
+  #main { width:100%; height:100%; }
+  #topbar { padding:max(env(safe-area-inset-top,0px),10px) 16px 10px; }
+  .hamburger { display:flex; }
+  .tb-actions .tb-btn { display:none; }
+  #content { padding:14px 14px 80px; }
+  .grid-2, .grid-3, .grid-4, .grid-2-1, .grid-1-2 { grid-template-columns:1fr; }
+  .col-span-2, .col-span-3, .col-span-4 { grid-column:span 1; }
+  .vessel-stats { grid-template-columns:1fr 1fr; }
+  .weather-grid { grid-template-columns:1fr 1fr; }
+  .decision-inputs { grid-template-columns:1fr 1fr 1fr; }
+  .sos-grid { grid-template-columns:1fr; }
+  .emerg-body { grid-template-columns:1fr; }
+  .emerg-coords { grid-column:span 1; }
+  .emerg-why { grid-column:span 1; }
+  .hero-day-num { font-size:3.5rem; }
+  .hero-nm { font-size:1.4rem; }
+  .range-grid { grid-template-columns:1fr 1fr 1fr; }
+  .fuel-summary { grid-template-columns:1fr 1fr 1fr; }
+  .prog-stop-name { display:none; }
+  .prog-dot { width:22px; height:22px; font-size:.5rem; }
+
+  /* Mobile bottom nav */
+  #mobile-nav {
+    display:flex; background:var(--surface);
+    border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    position:fixed; bottom:0; left:0; right:0; z-index:50;
+  }
+  .mn-item {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:10px 4px 8px; cursor:pointer;
+    border:none; background:none; color:var(--muted);
+    border-top:2px solid transparent; gap:3px; transition:color .15s;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .mn-item.active { color:var(--gold); border-top-color:var(--gold); background:rgba(232,184,64,.05); }
+  .mn-icon { font-size:1.2rem; line-height:1; }
+  .mn-label { font-size:.46rem; letter-spacing:.08em; text-transform:uppercase; }
+}
+@media (max-width:400px) {
+  .decision-inputs { grid-template-columns:1fr; }
+  .range-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── SIDEBAR ── -->
+  <div id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title"><span class="sb-logo-anchor">⚓</span> Helm Guide</div>
+      <div class="sb-logo-sub">Marine Navigation Dashboard</div>
+    </div>
+    <div class="sb-voyage" id="sb-voyage-info">
+      <div class="sb-voyage-lbl">Active Voyage</div>
+      <div class="sb-voyage-name" id="sb-vname">No route loaded</div>
+      <div class="sb-voyage-dates" id="sb-vdates">—</div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section-lbl">Navigation</div>
+      <div class="sb-item active" onclick="showPanel('today')" id="nav-today">
+        <span class="sb-item-icon">🧭</span>
+        <span class="sb-item-label">Today's Leg</span>
+      </div>
+      <div class="sb-item" onclick="showPanel('gps')" id="nav-gps">
+        <span class="sb-item-icon">📍</span>
+        <span class="sb-item-label">GPS Waypoints</span>
+      </div>
+      <div class="sb-item" onclick="showPanel('alerts')" id="nav-alerts">
+        <span class="sb-item-icon">⚠️</span>
+        <span class="sb-item-label">Advisories</span>
+        <span class="sb-badge" id="alert-badge" style="display:none">!</span>
+      </div>
+      <div class="sb-section-lbl">Vessel</div>
+      <div class="sb-item" onclick="showPanel('fuel')" id="nav-fuel">
+        <span class="sb-item-icon">⛽</span>
+        <span class="sb-item-label">Fuel Tracker</span>
+      </div>
+      <div class="sb-item" onclick="showPanel('contacts')" id="nav-contacts">
+        <span class="sb-item-icon">☎️</span>
+        <span class="sb-item-label">Contacts</span>
+      </div>
+      <div class="sb-item" onclick="showPanel('vessel')" id="nav-vessel">
+        <span class="sb-item-icon">🚢</span>
+        <span class="sb-item-label">Vessel Profile</span>
+      </div>
+      <div class="sb-section-lbl">Route</div>
+      <div class="sb-day-list" id="sb-day-list"></div>
+      <div class="sb-item" onclick="openSetup()" style="margin-top:4px">
+        <span class="sb-item-icon">⚙️</span>
+        <span class="sb-item-label">Edit Route</span>
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-status-dot" id="sb-dot"></div>
+      <div class="sb-status-text" id="sb-status-text">Ready</div>
+    </div>
+  </div>
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── MAIN ── -->
+  <div id="main">
+    <div id="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="hamburger" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="tb-left">
+          <div class="tb-title" id="tb-title">⚓ Helm Guide</div>
+          <div class="tb-sub" id="tb-sub">Marine Navigation Dashboard</div>
+        </div>
+      </div>
+      <div class="tb-actions">
+        <button class="tb-btn" onclick="updatePosition()">📍 Update GPS</button>
+        <button class="tb-btn gold" onclick="fetchLiveWeather(true)">📡 Refresh Weather</button>
+        <button class="tb-btn" onclick="openSetup()">⚙️ Edit Route</button>
+      </div>
+    </div>
+
+    <div id="content">
+      <!-- TODAY -->
+      <div class="panel active" id="panel-today"></div>
+      <!-- GPS -->
+      <div class="panel" id="panel-gps"></div>
+      <!-- ALERTS -->
+      <div class="panel" id="panel-alerts"></div>
+      <!-- FUEL -->
+      <div class="panel" id="panel-fuel"></div>
+      <!-- CONTACTS -->
+      <div class="panel" id="panel-contacts"></div>
+      <!-- VESSEL -->
+      <div class="panel" id="panel-vessel"></div>
+    </div>
+  </div>
+
+  <!-- ── MOBILE NAV ── -->
+  <div id="mobile-nav">
+    <button class="mn-item active" onclick="showPanel('today')" id="mn-today"><span class="mn-icon">🧭</span><span class="mn-label">Today</span></button>
+    <button class="mn-item" onclick="showPanel('gps')" id="mn-gps"><span class="mn-icon">📍</span><span class="mn-label">GPS</span></button>
+    <button class="mn-item" onclick="showPanel('alerts')" id="mn-alerts"><span class="mn-icon">⚠️</span><span class="mn-label">Alerts</span></button>
+    <button class="mn-item" onclick="showPanel('contacts')" id="mn-contacts"><span class="mn-icon">☎️</span><span class="mn-label">Phones</span></button>
+    <button class="mn-item" onclick="showPanel('fuel')" id="mn-fuel"><span class="mn-icon">⛽</span><span class="mn-label">Fuel</span></button>
+    <button class="mn-item" onclick="showPanel('vessel')" id="mn-vessel"><span class="mn-icon">🚢</span><span class="mn-label">Vessel</span></button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+var ST = {
+  setup:false, voyage:{name:'',startDate:'',endDate:''},
+  vessel:{name:'',make:'',model:'',year:'',length:'',beam:'',draft:'',hullType:'',engineMake:'',engineModel:'',engineCount:'1',horsepower:'',tankSize:'250',speed:'10',burn:'18',vhf:'CH 9',mmsi:'',documentation:'',homePort:'',towingMembership:'',emergencyContact:'',emergencyPhone:'',notes:''},
+  stops:[], progress:-1,
+  fuelGal:{}, fuelPrice:{},
+  decision:{}, plan:{tankSize:'250',currentFuel:'200',reservePct:'20',speed:'10',burn:'18'},
+  lastPosition:null, weather:{}
+};
+var curDay=0, curPanel='today';
+
+function loadST(){
+  try{var s=localStorage.getItem('helmguide_generic');if(s){var p=JSON.parse(s);ST=deepMerge(ST,p);}}catch(e){}
+  curDay=ST.progress>=0?Math.min((ST.stops.length||1)-1,ST.progress):0;
+}
+function saveST(){try{localStorage.setItem('helmguide_generic',JSON.stringify(ST));}catch(e){}}
+function deepMerge(t,s){var o=Object.assign({},t);for(var k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k])){o[k]=deepMerge(t[k]||{},s[k]);}else{o[k]=s[k];}}return o;}
+
+// ═══════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════
+function boot(){
+  loadST();
+  updateNetworkStatus();
+  if(!ST.setup||!ST.stops||ST.stops.length===0){
+    showEmpty();
+  } else {
+    renderAll();
+    showPanel('today');
+  }
+}
+
+function showEmpty(){
+  document.getElementById('panel-today').innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:16px">'
+    +'<div style="font-size:3rem">⚓</div>'
+    +'<div style="font-family:\'Playfair Display\',serif;font-size:1.6rem;color:var(--gold)">Welcome to Helm Guide</div>'
+    +'<div style="font-size:.85rem;color:var(--muted);max-width:360px;line-height:1.7">Set up your voyage to get started. Add your stops, vessel info, and GPS waypoints.</div>'
+    +'<button onclick="openSetup()" style="margin-top:8px;padding:14px 28px;background:linear-gradient(135deg,rgba(232,184,64,.22),rgba(232,184,64,.1));border:1px solid rgba(232,184,64,.4);border-radius:12px;color:var(--gold);font-size:.9rem;font-weight:700;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif">⚙️ Set Up Your Voyage</button>'
+    +'</div>';
+  updateSidebar();
+}
+
+function openSetup(){
+  // redirect to mobile setup app
+  alert('Open the Helm Guide setup app (helm-guide-v3.html) to configure your route, then your data will appear here automatically — both apps share the same localStorage.');
+}
+
+// ═══════════════════════════════════════════
+//  PANELS
+// ═══════════════════════════════════════════
+var panels = ['today','gps','alerts','fuel','contacts','vessel'];
+
+function showPanel(name){
+  curPanel = name;
+  panels.forEach(function(p){
+    document.getElementById('panel-'+p).classList.toggle('active', p===name);
+    var nb=document.getElementById('nav-'+p);
+    if(nb) nb.classList.toggle('active', p===name);
+    var mb=document.getElementById('mn-'+p);
+    if(mb) mb.classList.toggle('active', p===name);
+  });
+  document.getElementById('content').scrollTop=0;
+  renderPanel(name);
+  if(name==='today') maybeAutoFetchWeather();
+}
+
+function renderAll(){
+  updateSidebar();
+  updateTopbar();
+  renderPanel(curPanel);
+}
+
+function renderPanel(name){
+  if(!ST.stops||ST.stops.length===0){showEmpty();return;}
+  if(name==='today') renderToday();
+  else if(name==='gps') renderGPS();
+  else if(name==='alerts') renderAlerts();
+  else if(name==='fuel') renderFuel();
+  else if(name==='contacts') renderContacts();
+  else if(name==='vessel') renderVessel();
+}
+
+// ═══════════════════════════════════════════
+//  SIDEBAR & TOPBAR
+// ═══════════════════════════════════════════
+function updateSidebar(){
+  var vn=document.getElementById('sb-vname');
+  var vd=document.getElementById('sb-vdates');
+  if(vn) vn.textContent=ST.voyage.name||'Untitled Voyage';
+  if(vd){
+    var dates='';
+    if(ST.voyage.startDate) dates+=ST.voyage.startDate;
+    if(ST.voyage.endDate) dates+=' → '+ST.voyage.endDate;
+    vd.textContent=dates||'—';
+  }
+  // day list
+  var dl=document.getElementById('sb-day-list');
+  if(!dl) return;
+  var h='';
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i];
+    var cls=i<ST.progress?'done':i===curDay?'active':'';
+    h+='<div class="sb-day '+cls+'" onclick="selDay('+i+')">';
+    h+='<div class="sb-day-num">'+(i<ST.progress?'✓':(i+1))+'</div>';
+    h+='<div class="sb-day-info"><div class="sb-day-name">'+esc(s.name||'Stop '+(i+1))+'</div>';
+    h+='<div class="sb-day-date">'+(s.date?s.date.slice(5):'')+(s.nm?' · '+s.nm+' NM':'')+'</div></div></div>';
+  }
+  dl.innerHTML=h;
+  // alert badge
+  var hasAlert=ST.stops.some(function(s){return s.warn||(s.tags&&(s.tags.indexOf('no_fuel')>=0||s.tags.indexOf('fill_tanks')>=0));});
+  var ab=document.getElementById('alert-badge');
+  if(ab) ab.style.display=hasAlert?'':'none';
+}
+
+function updateTopbar(){
+  var d=ST.stops[curDay];
+  var title=document.getElementById('tb-title');
+  var sub=document.getElementById('tb-sub');
+  if(title) title.textContent='⚓ '+(ST.voyage.name||'Helm Guide');
+  if(sub&&d) sub.textContent='Day '+(curDay+1)+' — '+esc(d.name||'')+(d.date?' · '+d.date:'');
+}
+
+function selDay(i){
+  curDay=i;
+  updateSidebar();updateTopbar();
+  if(curPanel!=='today') showPanel('today');
+  else renderToday();
+  closeSidebar();
+}
+
+// ═══════════════════════════════════════════
+//  TODAY PANEL
+// ═══════════════════════════════════════════
+function renderToday(){
+  var d=ST.stops[curDay];if(!d)return;
+  var hrs='';if(d.nm&&ST.vessel.speed)hrs=(parseFloat(d.nm)/parseFloat(ST.vessel.speed)).toFixed(1)+' hrs est.';
+  var tagMap={fuel_here:{l:'Fuel Here!',t:'tf'},no_fuel:{l:'No Fuel',t:'tw'},showers:{l:'Showers',t:'ti'},power:{l:'Shore Power',t:'ti'},pumpout:{l:'Pump-Out',t:'ti'},wifi:{l:'Wi-Fi',t:'ti'},dnr:{l:'DNR Harbor',t:'td'},fill_tanks:{l:'Fill Tanks!',t:'ta'},extra_fenders:{l:'Extra Fenders',t:'ta'},call_ahead:{l:'Call Ahead',t:'ta'}};
+  var tags='';
+  if(d.tags&&d.tags.length){d.tags.forEach(function(t){var tm=tagMap[t];if(tm)tags+='<span class="tag '+tm.t+'">'+tm.l+'</span>';});}
+  var pair=decimalPair(d.lat,d.lon);
+  var mapsHref=pair?'https://maps.apple.com/?ll='+encodeURIComponent(pair.lat+','+pair.lon)+'&q='+encodeURIComponent(d.marina||d.name||'Marina'):'#';
+
+  var h='';
+
+  // ── Row 1: Progress + Stats ──
+  h+='<div class="card" style="margin-bottom:18px">';
+  h+='<div class="card-hd"><div><div class="card-title">Voyage Progress</div></div><div class="card-badge">Day '+(curDay+1)+' of '+ST.stops.length+'</div></div>';
+  h+='<div class="voyage-progress">';
+  h+='<div class="prog-stops">';
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i];
+    if(i>0) h+='<div class="prog-line'+(i<=ST.progress?' done':i===curDay?' cur':'')+'" style="flex:1"></div>';
+    var cls=i<ST.progress?'done':i===curDay?'cur':'';
+    h+='<div class="prog-stop '+cls+'" onclick="selDay('+i+')">';
+    h+='<div class="prog-dot-wrap"><div class="prog-dot">'+(i<ST.progress?'✓':(i+1))+'</div></div>';
+    h+='<div class="prog-stop-name">'+esc(s.name||('Stop '+(i+1)))+'</div></div>';
+  }
+  h+='</div>';
+  h+='<div class="prog-status">'+progText()+'</div>';
+  h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
+  for(var i=0;i<ST.stops.length;i++){
+    h+='<button onclick="setProg('+i+')" style="padding:5px 10px;border-radius:6px;background:rgba(90,184,232,.08);border:1px solid var(--border);color:var(--muted);font-size:.58rem;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif;'+(i===ST.progress?'color:var(--gold);border-color:rgba(232,184,64,.3)':'')+'">Mark Day '+(i+1)+' Done</button>';
+  }
+  h+='</div></div></div>';
+
+  // ── Row 2: Hero + GPS ──
+  h+='<div class="dash-grid grid-2-1" style="margin-bottom:18px">';
+
+  // Hero card
+  h+='<div class="hero-card">';
+  h+='<div class="hero-card-hd"><div class="hero-day-num">'+(curDay+1)+'</div>';
+  h+='<div class="hero-right"><div class="hero-date">'+(d.date||'')+'</div>';
+  h+='<div class="hero-nm">'+(d.nm?d.nm+' NM':'—')+'</div>';
+  h+='<div class="hero-hrs">'+hrs+'</div></div></div>';
+  h+='<div class="hero-card-body">';
+  h+='<div class="hero-marina-lbl">Overnight at</div>';
+  h+='<div class="hero-marina">'+esc(d.marina||d.name||'')+'</div>';
+  if(tags) h+='<div class="hero-tags">'+tags+'</div>';
+  if(d.warn) h+='<div class="warn-blk"><div class="blk-t blk-warn">⚠ Navigation Warning</div><div class="blk-body">'+esc(d.warn)+'</div></div>';
+  if(d.fuel) h+='<div class="fuel-blk"><div class="blk-t">⛽ Fuel Note</div><div class="blk-body">'+esc(d.fuel)+'</div></div>';
+  if(d.nav) h+='<div class="nav-blk"><div class="blk-t">Navigation Notes</div><div class="blk-body">'+esc(d.nav)+'</div></div>';
+  // Quick action buttons
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">';
+  h+='<a href="'+mapsHref+'" target="_blank" class="w-btn green">🧭 Navigate to Marina</a>';
+  h+='<button class="w-btn" onclick="navionicsCopyCurrent()">📡 Navionics Copy</button>';
+  if(d.phone) h+='<a href="tel:'+d.phone.replace(/[^0-9]/g,'')+'" class="w-btn">📞 '+esc(d.phone)+'</a>';
+  h+='</div></div></div>';
+
+  // GPS coords card
+  h+='<div class="card">';
+  h+='<div class="card-hd"><div class="card-title">GPS</div><span class="card-badge sky">DD° MM.mmm\'</span></div>';
+  h+='<div class="card-body">';
+  if(d.lat&&d.lon){
+    h+='<div class="coord-block"><div class="coord-lbl">Waypoint Coordinates</div>';
+    h+='<div class="coord-val">'+esc(d.lat)+'<br>'+esc(d.lon)+'</div>';
+    h+='<button class="copy-btn" onclick="cpCoords('+curDay+')">Copy Coordinates</button></div>';
+    h+='<button class="copy-btn" onclick="copyDecimalCoords()" style="margin-bottom:8px">Copy Decimal</button>';
+  } else {
+    h+='<div style="font-size:.76rem;color:var(--muted)">No coordinates entered for this stop.</div>';
+  }
+  if(d.vhf) h+='<div style="margin-top:8px"><span class="vbdg">'+esc(d.vhf)+'</span></div>';
+  // Metrics pills
+  h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">';
+  if(d.nm) h+='<span style="background:rgba(38,96,140,.2);border:1px solid rgba(38,96,140,.32);border-radius:20px;padding:5px 10px;font-size:.62rem;color:var(--sky)">⇢ '+d.nm+' NM</span>';
+  if(hrs) h+='<span style="background:rgba(38,96,140,.2);border:1px solid rgba(38,96,140,.32);border-radius:20px;padding:5px 10px;font-size:.62rem;color:var(--sky)">⏰ '+hrs+'</span>';
+  h+='</div></div></div>';
+
+  h+='</div>'; // end row 2
+
+  // ── Row 3: Weather + Go/No-Go ──
+  h+='<div class="dash-grid grid-2" style="margin-bottom:18px">';
+  h+=rWeatherCard();
+  h+=rDecisionCard();
+  h+='</div>';
+
+  // ── Row 4: Departure + Fuel Planner ──
+  h+='<div class="dash-grid grid-2" style="margin-bottom:18px">';
+  h+=rDepartureCard();
+  h+=rFuelPlannerCard();
+  h+='</div>';
+
+  // ── Emergency harbors ──
+  if(d.emerg&&d.emerg.length){
+    h+='<div style="margin-bottom:18px">';
+    h+='<div style="font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:10px">🚨 Emergency / Weather Harbors This Leg</div>';
+    h+='<div class="dash-grid grid-2">';
+    for(var i=0;i<d.emerg.length;i++){
+      var e=d.emerg[i];
+      h+='<div class="emerg-card"><div class="emerg-hd"><div><div class="emerg-name">'+esc(e.name)+'</div><div class="emerg-dist">'+esc(e.dist||'')+'</div></div><span class="vbdg">'+esc(e.vhf||'CH 9')+'</span></div>';
+      h+='<div class="emerg-body">';
+      if(e.lat&&e.lon) h+='<div class="emerg-coords">'+esc(e.lat)+'<br>'+esc(e.lon)+'</div>';
+      if(e.phone) h+='<div class="emerg-phone"><a href="tel:'+e.phone.replace(/[^0-9]/g,'')+'">📞 '+esc(e.phone)+'</a></div>';
+      if(e.why) h+='<div class="emerg-why">'+esc(e.why)+'</div>';
+      h+='</div></div>';
+    }
+    h+='</div></div>';
+  }
+
+  // ── SOS Card ──
+  h+=rSOSCard();
+
+  document.getElementById('panel-today').innerHTML=h;
+  restorePlanInputs();
+}
+
+// ═══════════════════════════════════════════
+//  WEATHER CARD
+// ═══════════════════════════════════════════
+function weatherKey(){return 'd'+(curDay+1);}
+function getWS(){return(ST.weather&&ST.weather[weatherKey()])||{};}
+function rWeatherCard(){
+  var w=getWS();
+  var tempF=w.temperatureC!=null?((w.temperatureC*9/5)+32):null;
+  var statusClass=w.error?'bad':(w.fetchedAt?'ok':'');
+  var statusText=w.loading?'Updating from NOAA…':(w.error?'Update failed':(w.fetchedAt?('Updated '+fmtTime(w.fetchedAt)):'Tap refresh to load live weather'));
+  var h='<div class="card"><div class="card-hd"><div><div class="card-title">Live Weather</div><div class="card-sub">NOAA / NWS observations</div></div><span class="card-badge sky">Live</span></div><div class="card-body">';
+  h+='<div class="weather-status"><div class="wdot '+statusClass+'"></div><span>'+statusText+(w.stationName?' · '+w.stationName:'')+'</span></div>';
+  h+='<div class="weather-grid">';
+  h+='<div class="weather-stat"><div class="ws-label">Current Wind</div><div class="ws-value">'+(w.currentWindKts!=null?(Math.round(w.currentWindKts)+' kts '+(w.currentWindDir||'')):'—')+'</div><div class="ws-sub">'+(w.currentGustKts!=null?'Gusts '+Math.round(w.currentGustKts)+' kts · ':'')+( w.currentText||'')+'</div></div>';
+  h+='<div class="weather-stat"><div class="ws-label">Next Hour Forecast</div><div class="ws-value">'+(w.forecastWindKts!=null?(Math.round(w.forecastWindKts)+' kts '+(w.forecastWindDir||'')):'—')+'</div><div class="ws-sub">'+(w.forecastShort||'Hourly forecast')+'</div></div>';
+  h+='<div class="weather-stat"><div class="ws-label">Air Temp</div><div class="ws-value">'+(tempF!=null?(Math.round(tempF)+'°F'):'—')+'</div><div class="ws-sub">Observation: '+(w.observationTime?fmtTime(w.observationTime):'—')+'</div></div>';
+  h+='<div class="weather-stat"><div class="ws-label">Station</div><div class="ws-value" style="font-size:.9rem">'+(w.stationId||'—')+'</div><div class="ws-sub">Nearest NWS station</div></div>';
+  h+='</div>';
+  h+='<div class="weather-actions">';
+  h+='<button class="w-btn green" onclick="fetchLiveWeather(true)">📡 Refresh</button>';
+  h+='<button class="w-btn gold" onclick="applyWeatherToDecision()">⬇️ Use in GO/NO-GO</button>';
+  h+='<a class="w-btn" href="'+currentStopForecastUrl()+'" target="_blank">🌦️ NOAA Forecast</a>';
+  h+='<a class="w-btn" href="https://www.ndbc.noaa.gov/" target="_blank">📡 Buoys</a>';
+  h+='</div>';
+  h+='<div style="font-size:.62rem;color:var(--muted);margin-top:8px;line-height:1.5">Wave height requires separate buoy check. Use marine forecast for passage planning.</div>';
+  h+='</div></div>';
+  return h;
+}
+
+// ═══════════════════════════════════════════
+//  GO / NO-GO CARD
+// ═══════════════════════════════════════════
+function rDecisionCard(){
+  var ds=ST.decision||{},out=getDecision();
+  var h='<div class="card"><div class="card-hd"><div class="card-title">Go / No-Go</div><span class="card-badge '+(out.state==='go'?'green':out.state==='caution'?'amber':'red')+'">'+out.title+'</span></div><div class="card-body">';
+  h+='<div class="decision-inputs">';
+  h+='<div class="inp-group"><label>Wind Direction</label><select id="windDirInput" onchange="saveDecision()">'+['','N','NE','E','SE','S','SW','W','NW'].map(function(v){return'<option value="'+v+'"'+(ds.windDir===v?' selected':'')+'>'+(v||'Select…')+'</option>';}).join('')+'</select></div>';
+  h+='<div class="inp-group"><label>Wind Speed (kts)</label><input id="windSpeedInput" type="number" inputmode="decimal" placeholder="kts" value="'+(ds.windSpeed||'')+'" onchange="saveDecision()"></div>';
+  h+='<div class="inp-group"><label>Wave Height (ft)</label><input id="waveInput" type="number" step="0.1" inputmode="decimal" placeholder="ft" value="'+(ds.waves||'')+'" onchange="saveDecision()"></div>';
+  h+='</div>';
+  h+='<div class="decision-result '+out.state+'"><div class="dr-label">Decision</div><div class="dr-value">'+out.title+'</div><div class="dr-copy">'+out.copy+'</div></div>';
+  h+='<div class="weather-chips"><a class="wchip" href="https://www.ndbc.noaa.gov/" target="_blank">📡 NOAA Buoys</a><a class="wchip" href="https://forecast.weather.gov/" target="_blank">🌦️ Forecast</a></div>';
+  h+='<div style="font-size:.62rem;color:var(--muted);margin-top:8px;line-height:1.5">Quick decision aid only. Always verify with current marine forecast, buoy data, and your own judgment.</div>';
+  h+='</div></div>';
+  return h;
+}
+function saveDecision(){
+  ST.decision={windSpeed:(document.getElementById('windSpeedInput')||{}).value||'',windDir:(document.getElementById('windDirInput')||{}).value||'',waves:(document.getElementById('waveInput')||{}).value||''};
+  saveST();
+  var out=getDecision();
+  var dr=document.querySelector('.decision-result');
+  if(dr){dr.className='decision-result '+out.state;dr.querySelector('.dr-value').textContent=out.title;dr.querySelector('.dr-copy').textContent=out.copy;}
+  var badge=document.querySelector('#panel-today .card-badge.green, #panel-today .card-badge.amber, #panel-today .card-badge.red');
+  if(badge){badge.className='card-badge '+(out.state==='go'?'green':out.state==='caution'?'amber':'red');badge.textContent=out.title;}
+}
+function getDecision(){
+  var d=ST.decision||{},speed=parseFloat(d.windSpeed)||0,waves=parseFloat(d.waves)||0,dir=(d.windDir||'').toUpperCase();
+  var high=['N','NW','NE'].indexOf(dir)>=0;
+  if(waves>=4||speed>=20)return{state:'nogo',title:'NO-GO',copy:'Conditions are rough. Delay departure or shorten the leg.'};
+  if(high&&speed>=15)return{state:'nogo',title:'NO-GO',copy:'Unfavorable wind at 15+ kts. Hold and wait for a better window.'};
+  if((high&&speed>=10)||waves>=2.5||speed>=15)return{state:'caution',title:'CAUTION',copy:'Marginal conditions. Verify forecast, buoy data, and confirm backup harbors before departing.'};
+  return{state:'go',title:'GO',copy:'Conditions look manageable based on values entered.'};
+}
+
+// ═══════════════════════════════════════════
+//  DEPARTURE ADVISOR
+// ═══════════════════════════════════════════
+function rDepartureCard(){
+  var d=ST.stops[curDay],p=ST.plan||{};
+  var rec=recommendedDeparture(d);
+  var h='<div class="card"><div class="card-hd"><div class="card-title">Departure Advisor</div><span class="card-badge">Auto</span></div><div class="card-body">';
+  h+='<div class="decision-inputs" style="grid-template-columns:1fr 1fr">';
+  h+='<div class="inp-group"><label>Cruise Speed (kts)</label><input id="planSpeed" type="number" inputmode="decimal" value="'+(p.speed||ST.vessel.speed||'10')+'" onchange="savePlan()"></div>';
+  h+='<div class="inp-group"><label>Fuel Burn (GPH)</label><input id="planBurn" type="number" inputmode="decimal" value="'+(p.burn||ST.vessel.burn||'18')+'" onchange="savePlan()"></div>';
+  h+='</div>';
+  if(rec.hours>0){
+    h+='<div style="background:rgba(40,200,112,.08);border:1px solid rgba(40,200,112,.22);border-radius:10px;padding:14px 16px;margin-top:4px">';
+    h+='<div style="font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Recommended Departure</div>';
+    h+='<div style="font-family:\'Playfair Display\',serif;font-size:1.5rem;font-weight:900;color:var(--green)">'+rec.departLabel+'</div>';
+    h+='<div style="font-size:.74rem;color:rgba(240,232,208,.82);margin-top:5px;line-height:1.6">Est. '+rec.hours.toFixed(1)+' hrs + ~'+rec.buffer+' hr buffer. If left now, arrive ~'+rec.arrivalLabel+'.</div>';
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">';
+    h+='<span style="background:rgba(90,184,232,.08);border:1px solid rgba(90,184,232,.15);border-radius:999px;padding:5px 10px;font-size:.62rem;color:var(--sky)">⛽ Burn est. '+(rec.hours*(parseFloat(p.burn||ST.vessel.burn)||18)).toFixed(0)+' gal</span>';
+    h+='<span style="background:rgba(90,184,232,.08);border:1px solid rgba(90,184,232,.15);border-radius:999px;padding:5px 10px;font-size:.62rem;color:var(--sky)">🌅 Aim for daylight arrival</span>';
+    h+='</div></div>';
+  } else {
+    h+='<div style="font-size:.76rem;color:var(--muted);margin-top:8px">Add distance (NM) to this stop to see departure timing.</div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function rFuelPlannerCard(){
+  var p=ST.plan||{},d=ST.stops[curDay];
+  var curSafety=getLegSafety(parseFloat(d.nm)||0);
+  var h='<div class="card"><div class="card-hd"><div class="card-title">Fuel Range Planner</div><span class="card-badge '+(curSafety.cls.replace('leg-',''))+'">'+curSafety.status+'</span></div><div class="card-body">';
+  h+='<div class="decision-inputs">';
+  h+='<div class="inp-group"><label>Tank Size (gal)</label><input id="planTank" type="number" inputmode="decimal" value="'+(p.tankSize||ST.vessel.tankSize||'250')+'" onchange="savePlanFull()"></div>';
+  h+='<div class="inp-group"><label>Fuel Aboard (gal)</label><input id="planFuel" type="number" inputmode="decimal" value="'+(p.currentFuel||'200')+'" onchange="savePlanFull()"></div>';
+  h+='<div class="inp-group"><label>Reserve %</label><input id="planReserve" type="number" inputmode="decimal" value="'+(p.reservePct||'20')+'" onchange="savePlanFull()"></div>';
+  h+='</div>';
+  h+='<div class="range-grid">';
+  h+='<div class="range-stat"><div class="rs-val">'+curSafety.maxNm.toFixed(0)+'</div><div class="rs-lbl">Safe Range NM</div></div>';
+  h+='<div class="range-stat"><div class="rs-val">'+curSafety.reqGal.toFixed(0)+'</div><div class="rs-lbl">This Leg Gal</div></div>';
+  h+='<div class="range-stat"><div class="rs-val '+curSafety.cls+'">'+curSafety.status+'</div><div class="rs-lbl">Fuel Status</div></div>';
+  h+='</div>';
+  var hasNm=ST.stops.some(function(s){return s.nm;});
+  if(hasNm){
+    h+='<table class="leg-table"><thead><tr><th>Leg</th><th>NM</th><th>Est. Gal</th><th>Status</th></tr></thead><tbody>';
+    for(var i=0;i<ST.stops.length;i++){var nm=parseFloat(ST.stops[i].nm)||0,s2=getLegSafety(nm);h+='<tr><td>'+esc(ST.stops[i].name)+'</td><td>'+nm.toFixed(0)+'</td><td>'+s2.reqGal.toFixed(0)+'</td><td class="'+s2.cls+'">'+s2.status+'</td></tr>';}
+    h+='</tbody></table>';
+  }
+  h+='<div style="font-size:.62rem;color:var(--muted);margin-top:8px">Reset Fuel Aboard after each top-off. Planning tool only.</div>';
+  h+='</div></div>';
+  return h;
+}
+
+function rSOSCard(){
+  var pos=ST.lastPosition;
+  var h='<div class="card"><div class="card-hd"><div class="card-title">Emergency Mode</div><span class="card-badge red">SOS</span></div><div class="card-body">';
+  h+='<div class="sos-grid">';
+  h+='<a class="sos-btn red" href="tel:8003685647">📞 Call USCG</a>';
+  h+='<a class="sos-btn amber" href="tel:911">📞 911</a>';
+  h+='<button class="sos-btn sky" onclick="updatePosition()">📍 Update GPS</button>';
+  h+='</div>';
+  if(pos&&pos.coords){
+    h+='<div class="pos-box"><div class="pos-main">'+pos.coords.latitude.toFixed(6)+', '+pos.coords.longitude.toFixed(6)+'</div><div class="pos-sub">Updated '+new Date(pos.ts||Date.now()).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+'</div></div>';
+  } else {
+    h+='<div class="pos-box"><div class="pos-main">No live position stored</div><div class="pos-sub">Tap Update GPS to save your current fix.</div></div>';
+  }
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
+  h+='<button class="w-btn" onclick="copyCurrentPosition()">Copy Position</button>';
+  h+='<button class="w-btn" onclick="copyMaydayScript()">Copy MAYDAY Script</button>';
+  if(ST.vessel.emergencyContact&&ST.vessel.emergencyPhone) h+='<a class="w-btn gold" href="tel:'+ST.vessel.emergencyPhone.replace(/[^0-9]/g,'')+'">📞 Shore Contact: '+esc(ST.vessel.emergencyContact)+'</a>';
+  h+='</div></div></div>';
+  return h;
+}
+
+// ═══════════════════════════════════════════
+//  GPS PANEL
+// ═══════════════════════════════════════════
+function renderGPS(){
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
+  h+='<div><div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;color:var(--gold)">GPS Waypoints</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:3px">DD° MM.mmm\' Format</div></div>';
+  h+='<button class="tb-btn gold" onclick="cpAll()">Copy All Waypoints</button></div>';
+  h+='<div style="font-size:.65rem;color:var(--muted);margin-bottom:14px;line-height:1.65">Navionics: Search → type e.g. 45 22.567N 84 57.500W  ·  Garmin: Menu → Waypoints → New</div>';
+
+  var primaries=ST.stops.filter(function(s){return s.lat&&s.lon;});
+  h+='<div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin-bottom:8px">Primary Route — '+primaries.length+' Waypoints</div>';
+  h+='<div class="dash-grid grid-2">';
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i],isFirst=i===0,isLast=i===ST.stops.length-1;
+    var badge=isFirst?'S':(isLast?'D':(i+1));
+    var badgeCls=isFirst?'':'';
+    h+='<div class="wpt-card"><div class="wpt-hd"><div class="wpt-badge'+(isLast?' dest':'')+'">'+badge+'</div><div><div class="wpt-name">'+esc(s.name)+'</div><div class="wpt-sub">'+esc(s.marina||'')+(s.date?' · '+s.date:'')+'</div></div></div>';
+    h+='<div class="wpt-body">';
+    if(s.lat&&s.lon){h+='<div class="wpt-coords">'+esc(s.lat)+'<br>'+esc(s.lon)+'</div><button class="copy-btn" style="max-width:160px" onclick="cpWpt('+i+')">Copy</button>';}
+    else{h+='<div style="font-size:.72rem;color:var(--muted)">No coordinates entered.</div>';}
+    h+='</div></div>';
+
+    // Emergency harbors
+    if(s.emerg&&s.emerg.length){
+      for(var j=0;j<s.emerg.length;j++){
+        var e=s.emerg[j];if(!e.lat||!e.lon)continue;
+        h+='<div class="wpt-card" style="border-color:rgba(232,128,32,.25)"><div class="wpt-hd"><div class="wpt-badge emerg">E'+(j+1)+'</div><div><div class="wpt-name" style="color:var(--amber)">'+esc(e.name)+'</div><div class="wpt-sub">Emergency — Day '+(i+1)+'</div></div></div>';
+        h+='<div class="wpt-body"><div class="wpt-coords" style="color:rgba(200,170,100,.9)">'+esc(e.lat)+'<br>'+esc(e.lon)+'</div><button class="copy-btn" style="max-width:160px;border-color:rgba(232,128,32,.28);color:var(--amber)" onclick="cpEmerg('+i+','+j+')">Copy</button></div></div>';
+      }
+    }
+  }
+  h+='</div>';
+  document.getElementById('panel-gps').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  ALERTS PANEL
+// ═══════════════════════════════════════════
+function renderAlerts(){
+  var h='<div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;color:var(--gold);margin-bottom:16px">Navigation Advisories</div>';
+  h+='<div class="dash-grid grid-2" style="margin-bottom:18px">';
+  h+=rSOSCard();
+  // MAYDAY reference
+  h+='<div class="card"><div class="card-hd"><div class="card-title">MAYDAY Procedure</div><span class="card-badge red">CH 16</span></div><div class="card-body">';
+  h+='<div style="font-size:.78rem;line-height:1.9;color:rgba(240,232,208,.85);font-family:\'IBM Plex Mono\',monospace">';
+  ['MAYDAY MAYDAY MAYDAY','This is [vessel name]','Position: [GPS coordinates]','Nature of distress: [describe]','Persons aboard: [count]','Request immediate assistance','Over — await response'].forEach(function(l,i){h+='<div style="margin-bottom:2px"><span style="color:var(--muted);margin-right:8px">'+(i+1)+'.</span>'+l+'</div>';});
+  h+='</div><button class="copy-btn" style="margin-top:10px" onclick="copyMaydayScript()">Copy MAYDAY Script</button></div></div>';
+  h+='</div>';
+
+  // Warnings from stops
+  var hasAlerts=false;
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i];
+    if(s.warn){hasAlerts=true;h+='<div class="alert-card warn"><div class="alert-inner"><div class="alert-icon">⚠️</div><div><div class="alert-title">Day '+(i+1)+' — '+esc(s.name)+'</div><div class="alert-body">'+esc(s.warn)+'</div></div></div></div>';}
+    if(s.tags&&s.tags.indexOf('no_fuel')>=0){hasAlerts=true;h+='<div class="alert-card danger"><div class="alert-inner"><div class="alert-icon">⛽</div><div><div class="alert-title">No Fuel — Day '+(i+1)+' — '+esc(s.name)+'</div><div class="alert-body">No fuel at '+esc(s.marina||s.name)+'. Plan accordingly.</div></div></div></div>';}
+    if(s.tags&&s.tags.indexOf('fill_tanks')>=0){hasAlerts=true;h+='<div class="alert-card warn"><div class="alert-inner"><div class="alert-icon">⛽</div><div><div class="alert-title">Fill Tanks! — Day '+(i+1)+' — '+esc(s.name)+'</div><div class="alert-body">'+esc(s.fuel||'Top off completely at this stop.')+'</div></div></div></div>';}
+  }
+  if(!hasAlerts) h+='<div class="alert-card ok"><div class="alert-inner"><div class="alert-icon">✅</div><div><div class="alert-title">No Active Alerts</div><div class="alert-body">No warnings entered for any stops.</div></div></div></div>';
+
+  // VHF reference
+  h+='<div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin:18px 0 10px">VHF Quick Reference</div>';
+  h+='<div class="vhf-table">';
+  [{ch:'CH 16',r:'red',u:'USCG Distress & Calling — Monitor at all times underway'},{ch:'CH 9',u:'Recreational boater hailing / Marina hailing'},{ch:'WX3/4',u:'NOAA Weather — check every morning before departing'},{ch:'CH 22A',u:'US Coast Guard working channel'},{ch:'CH 13',u:'Commercial vessel bridge-to-bridge'},{ch:'CH 67',u:'Drawbridge operators (inland waterways)'}].forEach(function(v){
+    h+='<div class="vhf-row"><div class="vhf-ch'+(v.r?' '+v.r:'')+'">'+v.ch+'</div><div class="vhf-use">'+v.u+'</div></div>';
+  });
+  h+='</div>';
+  document.getElementById('panel-alerts').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  CONTACTS PANEL
+// ═══════════════════════════════════════════
+function renderContacts(){
+  var h='<div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;color:var(--gold);margin-bottom:16px">Marina Contacts</div>';
+  h+='<div class="dash-grid grid-2">';
+  var hasContacts=false;
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i];if(!s.phone)continue;hasContacts=true;
+    h+='<div class="contact-card"><div class="contact-hd"><div class="contact-name">'+esc(s.marina||s.name)+'</div><div class="contact-sub">Day '+(i+1)+(i===0?' — Departure':i===ST.stops.length-1?' — Destination':'')+'</div></div>';
+    h+='<div class="contact-body">';
+    if(s.lat&&s.lon) h+='<div class="contact-coords">'+esc(s.lat)+' / '+esc(s.lon)+'</div>';
+    h+='<a href="tel:'+s.phone.replace(/[^0-9]/g,'')+'" class="call-btn">📞 '+esc(s.phone)+'</a>';
+    h+='<span class="vbdg">'+esc(s.vhf||'CH 9')+'</span></div></div>';
+    // Emergency harbors
+    if(s.emerg)s.emerg.forEach(function(e,j){
+      if(!e.phone)return;
+      h+='<div class="contact-card" style="border-color:rgba(232,128,32,.22)"><div class="contact-hd" style="background:rgba(60,28,0,.7)"><div class="contact-name" style="color:var(--amber)">'+esc(e.name)+'</div><div class="contact-sub">Emergency — Day '+(i+1)+'</div></div>';
+      h+='<div class="contact-body"><a href="tel:'+e.phone.replace(/[^0-9]/g,'')+'" class="call-btn amber">📞 '+esc(e.phone)+'</a><span class="vbdg">'+esc(e.vhf||'CH 9')+'</span></div></div>';
+    });
+  }
+  h+='</div>';
+  if(!hasContacts) h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:16px">No phone numbers entered. Add them in Route Setup.</div>';
+  h+='<div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin:16px 0 10px">Always-Available Emergency Contacts</div>';
+  h+='<div class="dash-grid grid-2">';
+  var ec=[{name:'USCG Search & Rescue',phone:'800-368-5647',vhf:'CH 16 — MAYDAY'},{name:'Tow Boat US',phone:'800-391-4869',vhf:'CH 16'},{name:'Sea Tow',phone:'800-473-2869',vhf:'CH 16'}];
+  var vm=ST.vessel;if(vm.emergencyContact&&vm.emergencyPhone)ec.push({name:'Shore: '+vm.emergencyContact,phone:vm.emergencyPhone,vhf:'—'});
+  ec.forEach(function(c){
+    h+='<div class="contact-card"><div class="contact-hd"><div class="contact-name">'+esc(c.name)+'</div></div><div class="contact-body"><a href="tel:'+c.phone.replace(/[^0-9]/g,'')+'" class="call-btn">📞 '+esc(c.phone)+'</a><span class="vbdg">'+esc(c.vhf)+'</span></div></div>';
+  });
+  h+='</div>';
+  document.getElementById('panel-contacts').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  FUEL PANEL
+// ═══════════════════════════════════════════
+function renderFuel(){
+  var tg=0,tc=0,ps=0,pc=0;
+  var h='<div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;color:var(--gold);margin-bottom:16px">Fuel Tracker</div>';
+  h+='<div class="card" style="margin-bottom:18px">';
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i],noFuel=s.tags&&s.tags.indexOf('no_fuel')>=0,fillUp=s.tags&&s.tags.indexOf('fill_tanks')>=0;
+    if(!noFuel){var g=parseFloat(ST.fuelGal[i])||0,p2=parseFloat(ST.fuelPrice[i])||0;tg+=g;tc+=g*p2;if(p2>0){ps+=p2;pc++;}}
+    h+='<div class="fuel-row"><div class="fuel-info"><div class="fuel-marina">'+esc(s.marina||s.name)+'</div><div class="fuel-day" style="'+(fillUp?'color:var(--amber)':'')+'">Day '+(i+1)+(fillUp?' · FILL UP!':'')+'</div></div>';
+    if(noFuel){h+='<div class="no-fuel-badge">⚠ NO FUEL</div>';}
+    else{
+      var gv=ST.fuelGal[i]||'',pv=ST.fuelPrice[i]||'',tot=(gv&&pv)?'$'+(parseFloat(gv)*parseFloat(pv)).toFixed(2):'—';
+      h+='<div class="fuel-inputs"><input class="fuel-inp" type="number" min="0" inputmode="decimal" placeholder="gal" id="fg'+i+'" value="'+gv+'" onchange="sF('+i+',\'g\',this.value)">';
+      h+='<input class="fuel-inp" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$/gal" id="fp'+i+'" value="'+pv+'" onchange="sF('+i+',\'p\',this.value)">';
+      h+='<div class="fuel-total" id="ft'+i+'">'+tot+'</div></div>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="fuel-summary"><div class="fs-item"><div class="fs-value">'+tg.toFixed(0)+'</div><div class="fs-label">Total Gallons</div></div><div class="fs-item"><div class="fs-value">$'+tc.toFixed(0)+'</div><div class="fs-label">Total Cost</div></div><div class="fs-item"><div class="fs-value">'+(pc>0?'$'+(ps/pc).toFixed(2):'—')+'</div><div class="fs-label">Avg / Gallon</div></div></div>';
+  h+='</div>';
+  var burn=parseFloat(ST.vessel.burn)||18,speed=parseFloat(ST.vessel.speed)||10,totalNm=0;
+  ST.stops.forEach(function(s){totalNm+=parseFloat(s.nm)||0;});
+  var estGal=speed>0?((totalNm/speed)*burn):0;
+  h+='<div style="font-size:.7rem;color:var(--muted);line-height:1.7">Est. burn: '+burn+' GPH at '+speed+' kts.'+(totalNm?' Total route ~'+totalNm.toFixed(0)+' NM, est. '+estGal.toFixed(0)+' gal total.':'')+'</div>';
+  document.getElementById('panel-fuel').innerHTML=h;
+}
+function sF(id,f,vv){
+  if(f==='g')ST.fuelGal[id]=vv;else ST.fuelPrice[id]=vv;saveST();
+  var g=parseFloat(ST.fuelGal[id])||0,p2=parseFloat(ST.fuelPrice[id])||0;
+  var e=document.getElementById('ft'+id);if(e)e.textContent=(g&&p2)?'$'+(g*p2).toFixed(2):'—';
+  var tg=0,tc=0,ps=0,pc=0;
+  ST.stops.forEach(function(s,i){if(s.tags&&s.tags.indexOf('no_fuel')>=0)return;var sg=parseFloat(ST.fuelGal[i])||0,sp=parseFloat(ST.fuelPrice[i])||0;tg+=sg;tc+=sg*sp;if(sp>0){ps+=sp;pc++;}});
+  var fv=document.querySelectorAll('.fs-value');
+  if(fv[0])fv[0].textContent=tg.toFixed(0);if(fv[1])fv[1].textContent='$'+tc.toFixed(0);if(fv[2])fv[2].textContent=pc>0?'$'+(ps/pc).toFixed(2):'—';
+}
+
+// ═══════════════════════════════════════════
+//  VESSEL PANEL
+// ═══════════════════════════════════════════
+function renderVessel(){
+  var vm=ST.vessel;
+  var range=vm.tankSize&&vm.burn&&vm.speed?(parseFloat(vm.tankSize)*0.8/parseFloat(vm.burn)*parseFloat(vm.speed)).toFixed(0)+' NM':'—';
+  var h='<div class="vessel-hero">';
+  h+='<div class="vessel-name">'+(vm.name||'Your Vessel')+'</div>';
+  h+='<div class="vessel-make">'+(vm.year?vm.year+' ':'')+esc(vm.make||'')+(vm.model?' '+esc(vm.model):'')+(vm.homePort?' · Home Port: '+esc(vm.homePort):'')+'</div>';
+  h+='<div class="vessel-stats">';
+  h+='<div class="vs-pill"><div class="vs-val">'+(vm.length?vm.length+'\'':'—')+'</div><div class="vs-lbl">Length</div></div>';
+  h+='<div class="vs-pill"><div class="vs-val">'+(vm.beam?vm.beam+'\'':'—')+'</div><div class="vs-lbl">Beam</div></div>';
+  h+='<div class="vs-pill"><div class="vs-val">'+(vm.draft?vm.draft+'\'':'—')+'</div><div class="vs-lbl">Draft</div></div>';
+  h+='<div class="vs-pill"><div class="vs-val">'+(vm.horsepower?vm.horsepower+' HP':'—')+'</div><div class="vs-lbl">Horsepower</div></div>';
+  h+='<div class="vs-pill"><div class="vs-val">'+range+'</div><div class="vs-lbl">Est. Range</div></div>';
+  h+='</div></div>';
+
+  h+='<div class="dash-grid grid-2" style="margin-top:18px">';
+
+  // Identity
+  h+='<div class="card"><div class="card-hd"><div class="card-title">Identity</div></div><div class="card-body">';
+  h+='<div class="profile-section-title">Vessel Details</div>';
+  [['Make',vm.make],['Model',vm.model],['Year',vm.year],['Hull Type',vm.hullType],['Home Port',vm.homePort],['Documentation / Reg #',vm.documentation]].forEach(function(r){
+    if(r[1]) h+='<div class="profile-row"><div class="pr-label">'+r[0]+'</div><div class="pr-value">'+esc(r[1])+'</div></div>';
+  });
+  h+='</div></div>';
+
+  // Engine
+  h+='<div class="card"><div class="card-hd"><div class="card-title">Engine & Performance</div></div><div class="card-body">';
+  [['Engine Make',vm.engineMake],['Engine Model',vm.engineModel],['Configuration',vm.engineCount==='2'?'Twin Engine':vm.engineCount==='3'?'Triple Engine':'Single Engine'],['Horsepower',vm.horsepower?vm.horsepower+' HP':''],['Cruise Speed',vm.speed?vm.speed+' kts':''],['Fuel Burn',vm.burn?vm.burn+' GPH':''],['Fuel Tank',vm.tankSize?vm.tankSize+' gal':'']].forEach(function(r){
+    if(r[1]) h+='<div class="profile-row"><div class="pr-label">'+r[0]+'</div><div class="pr-value gold">'+esc(r[1])+'</div></div>';
+  });
+  h+='</div></div>';
+
+  // Safety & Registration
+  h+='<div class="card"><div class="card-hd"><div class="card-title">Safety & Registration</div></div><div class="card-body">';
+  [['MMSI Number',vm.mmsi],['VHF Monitor',vm.vhf],['Towing Membership',vm.towingMembership],['Insurance Provider',vm.insuranceProvider],['Policy Number',vm.insurancePolicyNum]].forEach(function(r){
+    if(r[1]) h+='<div class="profile-row"><div class="pr-label">'+r[0]+'</div><div class="pr-value sky">'+esc(r[1])+'</div></div>';
+  });
+  h+='</div></div>';
+
+  // Emergency contact
+  h+='<div class="card"><div class="card-hd"><div class="card-title">Shore Emergency Contact</div></div><div class="card-body">';
+  if(vm.emergencyContact) h+='<div class="profile-row"><div class="pr-label">Contact Name</div><div class="pr-value">'+esc(vm.emergencyContact)+'</div></div>';
+  if(vm.emergencyPhone) h+='<div class="profile-row"><div class="pr-label">Phone</div><div class="pr-value sky"><a href="tel:'+vm.emergencyPhone.replace(/[^0-9]/g,'')+'" style="color:var(--sky);text-decoration:none">'+esc(vm.emergencyPhone)+'</a></div></div>';
+  if(!vm.emergencyContact&&!vm.emergencyPhone) h+='<div style="font-size:.76rem;color:var(--muted)">No emergency contact entered. Add one in Route Setup → Vessel.</div>';
+  h+='</div></div>';
+
+  h+='</div>';
+
+  if(vm.notes){
+    h+='<div class="card" style="margin-top:18px"><div class="card-hd"><div class="card-title">Notes</div></div><div class="card-body"><div style="font-size:.8rem;color:rgba(240,232,208,.82);line-height:1.75">'+esc(vm.notes)+'</div></div></div>';
+  }
+  document.getElementById('panel-vessel').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+//  HELPERS & UTILS
+// ═══════════════════════════════════════════
+function progText(){
+  if(ST.progress<0)return'Not yet departed — click a segment to mark progress';
+  var s=ST.stops[ST.progress];
+  if(ST.progress===ST.stops.length-1)return'🎉 Voyage complete · Welcome to '+(s?s.name:'your destination')+'!';
+  return'Day '+(ST.progress+1)+' complete · Anchored at '+(s?s.name:'');
+}
+function setProg(i){ST.progress=i;saveST();curDay=i;updateSidebar();renderPanel(curPanel);}
+function getLegSafety(nm){
+  var p=ST.plan||{},tank=parseFloat(p.tankSize||ST.vessel.tankSize)||0,current=parseFloat(p.currentFuel)||0,reserve=(parseFloat(p.reservePct)||0)/100,burn=parseFloat(p.burn||ST.vessel.burn)||18,speed=parseFloat(p.speed||ST.vessel.speed)||10;
+  var usable=Math.max(0,current-(tank*reserve)),maxNm=burn>0&&speed>0?(usable/burn)*speed:0,reqGal=speed>0&&burn>0?(nm/speed)*burn:0,margin=maxNm-nm;
+  var status='NO-GO',cls='leg-no';if(margin>=20){status='GOOD';cls='leg-ok';}else if(margin>=0){status='TIGHT';cls='leg-warn';}
+  return{usable:usable,maxNm:maxNm,reqGal:reqGal,status:status,cls:cls};
+}
+function savePlan(){
+  ST.plan=ST.plan||{};var sp=document.getElementById('planSpeed'),bu=document.getElementById('planBurn');
+  if(sp)ST.plan.speed=sp.value;if(bu)ST.plan.burn=bu.value;saveST();
+}
+function savePlanFull(){
+  ST.plan=ST.plan||{};
+  ['planTank','planFuel','planReserve','planSpeed','planBurn'].forEach(function(id){var el=document.getElementById(id);if(el){var k={planTank:'tankSize',planFuel:'currentFuel',planReserve:'reservePct',planSpeed:'speed',planBurn:'burn'}[id];ST.plan[k]=el.value;}});
+  saveST();
+}
+function restorePlanInputs(){
+  var p=ST.plan||{};
+  var map={planSpeed:'speed',planBurn:'burn',planTank:'tankSize',planFuel:'currentFuel',planReserve:'reservePct'};
+  Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el&&p[map[id]])el.value=p[map[id]];});
+}
+function recommendedDeparture(day){
+  var plan=ST.plan||{},speed=parseFloat(plan.speed||ST.vessel.speed)||10,nm=parseFloat(day.nm)||0;
+  if(!nm)return{hours:0,departLabel:'—',arrivalLabel:'—',buffer:1};
+  var hrs=speed>0?(nm/speed):0,safety=1,targetArrival=15;
+  var dep=targetArrival-(hrs+safety),h2=Math.floor(dep),m2=Math.round((dep-h2)*60);
+  if(m2===60){h2++;m2=0;}while(h2<0)h2+=24;
+  var hh=((h2+11)%12)+1,ap=h2>=12?'PM':'AM';
+  return{hours:hrs,departLabel:hh+':'+String(m2).padStart(2,'0')+' '+ap,arrivalLabel:etaFromNow(hrs),buffer:safety};
+}
+function etaFromNow(hours){var d=new Date();d.setMinutes(d.getMinutes()+Math.round(hours*60));var hh=d.getHours(),mm=d.getMinutes(),ap=hh>=12?'PM':'AM';hh=hh%12||12;return hh+':'+String(mm).padStart(2,'0')+' '+ap;}
+
+// GPS / Copy
+function cpCoords(i){var s=ST.stops[i];doCP((s.marina||s.name)+'\nLAT: '+s.lat+'\nLON: '+s.lon,'Coordinates copied!');}
+function cpWpt(i){var s=ST.stops[i];doCP((i+1)+': '+s.name+'\nLAT: '+s.lat+'\nLON: '+s.lon,'Waypoint copied!');}
+function cpEmerg(si,ei){var e=ST.stops[si].emerg[ei];doCP(e.name+'\nLAT: '+e.lat+'\nLON: '+e.lon,'Harbor copied!');}
+function cpAll(){var lines=['=== '+((ST.voyage&&ST.voyage.name)||'HELM GUIDE')+' WAYPOINTS ===',''];ST.stops.forEach(function(s,i){lines.push((i+1)+': '+s.name);if(s.lat&&s.lon)lines.push('  LAT: '+s.lat+'  LON: '+s.lon);lines.push('');});doCP(lines.join('\n'),'All waypoints copied!');}
+function navionicsCopyCurrent(){var d=ST.stops[curDay];if(!d.lat||!d.lon){alert('No coordinates for this stop.');return;}function clean(v){return String(v).replace(/[°º]/g,' ').replace(/['′']/g,'').replace(/[""″"]/g,'').replace(/\s+/g,' ').trim();}doCP(clean(d.lat)+' '+clean(d.lon),'Navionics coords copied!');}
+function copyDecimalCoords(){var d=ST.stops[curDay],pair=decimalPair(d.lat,d.lon);if(!pair){alert('No coordinates.');return;}doCP(pair.lat.toFixed(6)+', '+pair.lon.toFixed(6),'Decimal coords copied!');}
+function doCP(t,msg){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){alert(msg);}).catch(function(){prompt('Copy:',t);});}else{prompt('Copy:',t);}}
+
+// Coordinate parsing
+function dmmToDecimal(s){if(!s)return null;var m=String(s).match(/(\d+)[^\d]+(\d+(?:\.\d+)?)[^\d]*([NSEW])/i);if(!m)return null;var dec=parseFloat(m[1])+(parseFloat(m[2])/60);if(m[3].toUpperCase()==='S'||m[3].toUpperCase()==='W')dec*=-1;return dec;}
+function decimalPair(lat,lon){var la=dmmToDecimal(lat),lo=dmmToDecimal(lon);if(la===null||lo===null)return null;return{lat:la,lon:lo};}
+
+// Weather
+function maybeAutoFetchWeather(){if(!navigator.onLine)return;var w=getWS();if(w.loading)return;if(!w.fetchedAt||(Date.now()-w.fetchedAt)>30*60*1000)fetchLiveWeather(false);}
+function degToCardinal(deg){var dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return dirs[Math.round(parseFloat(deg)/22.5)%16];}
+function parseWindKts(v){if(v==null)return null;var m=String(v).match(/([0-9]+(?:\.[0-9]+)?)/);if(!m)return null;var n=parseFloat(m[1]);return /km\/?h/i.test(String(v))?(n*0.539957):n;}
+function fmtTime(ts){if(!ts)return'—';try{return new Date(ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}catch(e){return'—';}}
+function currentStopForecastUrl(){var d=ST.stops[curDay],pair=decimalPair(d.lat,d.lon);if(!pair)return'https://forecast.weather.gov/';return'https://forecast.weather.gov/MapClick.php?lon='+encodeURIComponent(pair.lon)+'&lat='+encodeURIComponent(pair.lat);}
+async function fetchLiveWeather(force){
+  if(!ST.stops||!ST.stops[curDay])return;
+  var d=ST.stops[curDay],pair=decimalPair(d.lat,d.lon);if(!pair)return;
+  ST.weather=ST.weather||{};var key=weatherKey(),cached=ST.weather[key]||{};
+  if(!force&&cached.fetchedAt&&(Date.now()-cached.fetchedAt)<10*60*1000)return;
+  ST.weather[key]=Object.assign({},cached,{loading:true,error:''});saveST();
+  if(curPanel==='today') renderToday();
+  try{
+    var pts=await fetch('https://api.weather.gov/points/'+pair.lat.toFixed(4)+','+pair.lon.toFixed(4),{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('NWS ('+r.status+')');return r.json();});
+    var props=pts.properties||{};
+    var sl=await fetch(props.observationStations,{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('Stations');return r.json();});
+    var station=(sl.features&&sl.features[0]);if(!station)throw new Error('No station found');
+    var stId=((station.id||'').split('/').pop())||'';
+    var obs=await fetch((station.id||'https://api.weather.gov/stations/'+stId)+'/observations/latest',{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('Obs');return r.json();});
+    var hourly=props.forecastHourly?await fetch(props.forecastHourly,{headers:{'Accept':'application/geo+json'}}).then(function(r){return r.ok?r.json():null;}):null;
+    var op=obs.properties||{},period=hourly&&hourly.properties&&hourly.properties.periods&&hourly.properties.periods[0];
+    ST.weather[key]={fetchedAt:Date.now(),loading:false,error:'',stationName:(station.properties&&station.properties.name)||stId,stationId:stId,observationTime:op.timestamp,currentWindDir:op.windDirection&&op.windDirection.value!=null?degToCardinal(op.windDirection.value):'',currentWindKts:op.windSpeed&&op.windSpeed.value!=null?(op.windSpeed.value*1.94384):null,currentGustKts:op.windGust&&op.windGust.value!=null?(op.windGust.value*1.94384):null,currentText:op.textDescription||'',temperatureC:op.temperature&&op.temperature.value!=null?op.temperature.value:null,forecastWindDir:period?period.windDirection:'',forecastWindKts:period?parseWindKts(period.windSpeed):null,forecastShort:period&&period.shortForecast?period.shortForecast:''};
+    saveST();if(curPanel==='today')renderToday();
+  }catch(err){ST.weather[key]=Object.assign({},cached,{loading:false,error:err.message,fetchedAt:Date.now()});saveST();if(curPanel==='today')renderToday();}
+}
+function applyWeatherToDecision(){var w=getWS();if(w.currentWindKts==null&&w.forecastWindKts==null){alert('Fetch weather first.');return;}ST.decision=ST.decision||{};ST.decision.windSpeed=Math.round(w.currentWindKts!=null?w.currentWindKts:w.forecastWindKts);ST.decision.windDir=(w.currentWindDir||w.forecastWindDir||'').toUpperCase();saveST();if(curPanel==='today')renderToday();alert('Wind copied into GO/NO-GO.');}
+
+// GPS / Position
+function updatePosition(){if(!navigator.geolocation){alert('Geolocation not available.');return;}navigator.geolocation.getCurrentPosition(function(pos){ST.lastPosition={coords:{latitude:pos.coords.latitude,longitude:pos.coords.longitude},ts:Date.now()};saveST();if(curPanel==='today')renderToday();if(curPanel==='alerts')renderAlerts();},function(err){alert('Position error: '+err.message);},{enableHighAccuracy:true,timeout:12000,maximumAge:30000});}
+function copyCurrentPosition(){if(!ST.lastPosition||!ST.lastPosition.coords){alert('Update position first.');return;}doCP(ST.lastPosition.coords.latitude.toFixed(6)+', '+ST.lastPosition.coords.longitude.toFixed(6),'Position copied!');}
+function copyMaydayScript(){doCP("MAYDAY MAYDAY MAYDAY\nThis is [vessel name]\nMy position is [insert GPS]\nNature of distress: [describe problem]\nPersons aboard: [count]\nRequest immediate assistance. Over.","MAYDAY script copied!");}
+
+// Sidebar toggle (mobile)
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('show');}
+
+// Network
+function updateNetworkStatus(){
+  var dot=document.getElementById('sb-dot'),txt=document.getElementById('sb-status-text');
+  if(!dot||!txt)return;
+  if(navigator.onLine){dot.classList.remove('offline');txt.textContent='Online';}
+  else{dot.classList.add('offline');txt.textContent='Offline';}
+}
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+window.addEventListener('online',updateNetworkStatus);
+window.addEventListener('offline',updateNetworkStatus);
+window.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>

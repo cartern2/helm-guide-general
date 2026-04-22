@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Helm Guide">
+<meta name="theme-color" content="#050e18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<title>Helm Guide</title>
+<style>
+:root{
+  --bg:#050e18;--surface:#0a1a28;--card:#0e2235;--border:rgba(38,96,140,.35);
+  --gold:#e8b840;--gdim:#a07820;--sky:#5ab8e8;--green:#28c870;--red:#e84030;
+  --amber:#e88020;--cream:#f0e8d0;--muted:#4a6880;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--cream);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;overflow:hidden;-webkit-text-size-adjust:100%;}
+#shell{display:flex;flex-direction:column;width:100%;height:100vh;height:100dvh;overflow:hidden;}
+#topbar{background:var(--surface);border-bottom:2px solid var(--gdim);padding:max(env(safe-area-inset-top,0px),10px) 16px 10px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+#tb-title{font-size:1rem;font-weight:700;color:var(--gold);}
+#tb-right{text-align:right;}
+#tb-day{font-size:.68rem;font-weight:700;color:var(--gold);}
+#tb-date{font-size:.58rem;letter-spacing:.1em;color:var(--sky);text-transform:uppercase;margin-top:1px;}
+#app-status{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:4px;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+#app-status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(40,200,112,.45)}
+#app-status.offline #app-status-dot{background:var(--amber)}
+#bottomnav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 2px 8px;cursor:pointer;border:none;background:none;color:var(--muted);min-height:52px;gap:3px;border-top:2px solid transparent;user-select:none;transition:color .15s;}
+.nt.active{color:var(--gold);border-top-color:var(--gold);background:rgba(232,184,64,.06);}
+.nt:active{background:rgba(232,184,64,.12);}
+.ni{font-size:1.2rem;line-height:1;}
+.nl{font-size:.48rem;letter-spacing:.08em;text-transform:uppercase;}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+#content::-webkit-scrollbar{display:none;}
+
+/* ── SHARED FORM ELEMENTS ── */
+.field{margin-bottom:12px;}
+.field label,.lbl{display:block;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field input,.field select,.field textarea,
+input.inp,select.inp,textarea.inp{width:100%;background:rgba(0,0,0,.42);border:1px solid var(--border);border-radius:8px;color:var(--cream);font-size:.88rem;padding:11px 12px;outline:none;-webkit-appearance:none;font-family:inherit;}
+.field input:focus,.field select:focus,.field textarea:focus,
+input.inp:focus,select.inp:focus,textarea.inp:focus{border-color:var(--sky);}
+.field textarea,textarea.inp{resize:vertical;min-height:72px;line-height:1.5;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.hint{font-size:.62rem;color:var(--muted);margin-top:4px;line-height:1.5;}
+.sec-sep{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(90,184,232,.15);}
+
+/* ── WIZARD ── */
+.wiz{padding:16px;max-width:520px;margin:0 auto;}
+.wiz-hero{text-align:center;padding:24px 0 18px;}
+
+/* ── WELCOME SCREEN ── */
+.welcome-screen{padding:20px 16px 40px;max-width:560px;margin:0 auto;}
+.welcome-hero{text-align:center;padding:20px 0 28px;}
+.welcome-anchor{font-size:3.2rem;margin-bottom:10px;line-height:1;animation:anchorFloat 3s ease-in-out infinite;}
+@keyframes anchorFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.welcome-title{font-size:1.8rem;font-weight:900;color:var(--gold);letter-spacing:.01em;line-height:1.15;margin-bottom:8px;}
+.welcome-sub{font-size:.86rem;color:var(--cream);opacity:.78;line-height:1.6;max-width:420px;margin:0 auto;}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px;}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;transition:all .2s;}
+.feature-card:hover{border-color:rgba(232,184,64,.3);background:rgba(232,184,64,.03);}
+.fc-icon{font-size:1.6rem;margin-bottom:8px;line-height:1;}
+.fc-title{font-size:.8rem;font-weight:700;color:var(--cream);margin-bottom:4px;}
+.fc-desc{font-size:.65rem;color:var(--muted);line-height:1.5;}
+.welcome-cta-wrap{text-align:center;margin-bottom:28px;}
+.welcome-cta{width:100%;padding:18px 20px;background:linear-gradient(135deg,rgba(40,200,112,.25),rgba(18,72,44,.9));border:1px solid rgba(40,200,112,.45);border-radius:14px;color:#eafff3;font-size:1.05rem;font-weight:800;letter-spacing:.02em;cursor:pointer;font-family:inherit;box-shadow:0 10px 30px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08);transition:all .15s;}
+.welcome-cta:active{transform:scale(.98);}
+.welcome-cta:hover{filter:brightness(1.08);}
+.welcome-cta-hint{font-size:.65rem;color:var(--muted);margin-top:10px;letter-spacing:.04em;}
+.welcome-steps{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;}
+.ws-title{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin-bottom:14px;text-align:center;}
+.ws-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border2);}
+.ws-row:last-child{border:none;padding-bottom:0;margin-bottom:0;}
+.ws-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(232,184,64,.15);border:1px solid rgba(232,184,64,.3);color:var(--gold);font-size:.75rem;font-weight:800;flex-shrink:0;}
+.ws-label{font-size:.82rem;font-weight:600;color:var(--cream);margin-bottom:3px;}
+.ws-txt{font-size:.7rem;color:var(--muted);line-height:1.55;}
+@media(max-width:400px){.feature-grid{grid-template-columns:1fr;}.welcome-title{font-size:1.5rem;}}
+.wiz-anchor{font-size:2.2rem;margin-bottom:8px;}
+.wiz-title{font-size:1.4rem;font-weight:800;color:var(--gold);}
+.wiz-sub{font-size:.76rem;color:var(--muted);margin-top:6px;line-height:1.6;}
+.wiz-steps{display:flex;align-items:center;justify-content:center;gap:0;margin:16px 0 22px;}
+.ws{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.wsn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;border:2px solid var(--border);color:var(--muted);background:var(--card);transition:all .2s;}
+.ws.done .wsn{background:rgba(40,200,112,.15);border-color:var(--green);color:var(--green);}
+.ws.active .wsn{background:rgba(232,184,64,.15);border-color:var(--gold);color:var(--gold);}
+.wsl{font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.ws.active .wsl{color:var(--gold);}
+.wsc{flex:1;height:2px;background:var(--border);margin:0 3px;margin-bottom:14px;max-width:32px;}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:18px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s ease;}
+.wiz-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+.wiz-section-title{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin-bottom:14px;}
+.wiz-btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:.88rem;font-weight:800;letter-spacing:.04em;cursor:pointer;margin-bottom:8px;transition:all .15s;font-family:inherit;}
+.wiz-btn.primary{background:linear-gradient(135deg,rgba(232,184,64,.25),rgba(232,184,64,.1));border:1px solid rgba(232,184,64,.4);color:var(--gold);}
+.wiz-btn.green{background:linear-gradient(135deg,rgba(40,200,112,.22),rgba(18,72,44,.96));border:1px solid rgba(40,200,112,.4);color:#eafff3;}
+.wiz-btn.secondary{background:rgba(90,184,232,.08);border:1px solid rgba(90,184,232,.2);color:var(--sky);}
+.wiz-btn.danger{background:rgba(232,64,48,.08);border:1px solid rgba(232,64,48,.25);color:#f06050;}
+.wiz-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.wiz-btn:active{transform:scale(.98);}
+.wiz-nav{display:flex;gap:8px;margin-top:4px;}
+.wiz-nav .wiz-btn{margin-bottom:0;}
+.stop-card{background:rgba(0,20,40,.6);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
+.stop-card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.stop-num{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.stop-del{background:rgba(232,64,48,.1);border:1px solid rgba(232,64,48,.2);color:#f06050;border-radius:6px;padding:5px 9px;font-size:.62rem;cursor:pointer;font-family:inherit;}
+.stop-edit{background:rgba(90,184,232,.1);border:1px solid rgba(90,184,232,.2);color:var(--sky);border-radius:6px;padding:5px 9px;font-size:.62rem;cursor:pointer;font-family:inherit;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.tag-chip{padding:5px 10px;border-radius:6px;font-size:.6rem;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:inherit;}
+.tag-chip.fuel{background:rgba(40,200,112,.08);border-color:rgba(40,200,112,.2);color:var(--green);}
+.tag-chip.fuel.on{background:rgba(40,200,112,.22);border-color:var(--green);}
+.tag-chip.warn{background:rgba(232,64,48,.08);border-color:rgba(232,64,48,.2);color:#f06050;}
+.tag-chip.warn.on{background:rgba(232,64,48,.22);border-color:#f06050;}
+.tag-chip.info{background:rgba(90,184,232,.08);border-color:rgba(90,184,232,.2);color:var(--sky);}
+.tag-chip.info.on{background:rgba(90,184,232,.2);border-color:var(--sky);}
+.tag-chip.amber{background:rgba(232,128,32,.08);border-color:rgba(232,128,32,.2);color:var(--amber);}
+.tag-chip.amber.on{background:rgba(232,128,32,.2);border-color:var(--amber);}
+
+/* emergency harbor subform */
+.emerg-subform{background:rgba(232,128,32,.06);border:1px solid rgba(232,128,32,.2);border-radius:10px;padding:12px;margin-top:10px;}
+.emerg-subform-title{font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;}
+.emerg-card{background:rgba(0,0,0,.3);border:1px solid rgba(232,128,32,.18);border-radius:8px;padding:10px;margin-bottom:7px;}
+.emerg-card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.emerg-card-name{font-size:.8rem;font-weight:700;color:var(--amber);}
+.emerg-card-del{background:none;border:none;color:#f06050;font-size:.75rem;cursor:pointer;padding:2px 6px;}
+.emerg-card-detail{font-size:.65rem;color:var(--muted);line-height:1.5;}
+
+/* ── APP TABS ── */
+.sec-hd{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px 10px;position:sticky;top:0;z-index:10;}
+.sec-title{font-size:1rem;font-weight:700;color:var(--gold);}
+.sec-sub{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+#day-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+#day-tabs::-webkit-scrollbar{display:none;}
+.dt{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);min-height:52px;gap:2px;transition:all .15s;}
+.dt.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,184,64,.06);}
+.dt:active{background:rgba(232,184,64,.1);}
+.dtn{font-size:.7rem;font-weight:700;letter-spacing:.05em;}
+.dtd{font-size:.5rem;color:inherit;opacity:.7;}
+#prog-strip{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;}
+.prog-lbl{font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.prog-row{display:flex;gap:4px;}
+.ps{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 0;}
+.pb{width:100%;height:5px;border-radius:3px;background:rgba(38,96,140,.28);transition:background .2s;}
+.ps.done .pb{background:var(--gdim);}
+.ps.cur .pb{background:var(--gold);box-shadow:0 0 8px rgba(232,184,64,.6);}
+.psl{font-size:.5rem;color:var(--muted);}
+.ps.cur .psl{color:var(--gold);}
+#prog-txt{font-size:.65rem;color:var(--sky);margin-top:6px;line-height:1.4;}
+.hero{margin:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.hero-hd{background:linear-gradient(135deg,#0e2840,#1a3850);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;}
+.hdaynum{font-size:2.6rem;font-weight:900;color:rgba(232,184,64,.18);line-height:1;}
+.hright{text-align:right;}
+.hdatestr{font-size:.6rem;letter-spacing:.15em;color:var(--sky);text-transform:uppercase;margin-bottom:3px;}
+.hnm{font-size:1.4rem;font-weight:700;color:var(--gold);}
+.hhrs{font-size:.62rem;color:var(--muted);letter-spacing:.08em;margin-top:1px;}
+.hero-body{padding:16px;}
+.hroute-lbl{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.hmarina{font-size:1.15rem;font-weight:700;color:var(--cream);margin-bottom:14px;line-height:1.2;}
+.cblk{background:rgba(0,20,40,.85);border:2px solid var(--sky);border-radius:8px;padding:12px 14px;margin-bottom:12px;}
+.clbl{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sky);margin-bottom:6px;}
+.cnum{font-size:1.05rem;font-weight:700;letter-spacing:.05em;color:#fff;line-height:1.85;}
+.copy-btn{display:block;width:100%;margin-top:9px;padding:11px;background:rgba(90,184,232,.1);border:1px solid rgba(90,184,232,.28);border-radius:6px;color:var(--sky);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;text-align:center;transition:background .15s;font-family:inherit;}
+.copy-btn:active{background:rgba(90,184,232,.25);}
+.metrics{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.mpill{background:rgba(38,96,140,.2);border:1px solid rgba(38,96,140,.32);border-radius:20px;padding:6px 11px;font-size:.65rem;color:var(--sky);}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.tag{padding:4px 9px;border-radius:4px;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;}
+.tf{background:rgba(40,200,112,.12);color:#28c870;border:1px solid rgba(40,200,112,.25);}
+.tw{background:rgba(232,64,48,.12);color:#f06050;border:1px solid rgba(232,64,48,.25);}
+.td{background:rgba(40,120,80,.15);color:#60d090;border:1px solid rgba(40,120,80,.3);}
+.ti{background:rgba(90,184,232,.1);color:var(--sky);border:1px solid rgba(90,184,232,.2);}
+.ta{background:rgba(232,128,32,.12);color:var(--amber);border:1px solid rgba(232,128,32,.25);}
+.cblk2{background:rgba(0,0,0,.3);border-radius:6px;padding:10px 12px;margin-bottom:10px;}
+.clbl2{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.ctxt{font-size:.78rem;color:var(--cream);line-height:1.85;}
+.ctxt a{color:var(--gold);text-decoration:none;}
+.nav-blk{background:rgba(0,30,60,.5);border-left:3px solid var(--sky);border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:10px;font-size:.75rem;line-height:1.65;color:rgba(240,232,208,.82);}
+.nav-blk-t{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin-bottom:5px;}
+.warn-blk{background:rgba(232,64,48,.1);border:1px solid rgba(232,64,48,.32);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.75rem;line-height:1.6;color:rgba(255,180,160,.9);}
+.warn-blk-t{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:#f06050;margin-bottom:4px;font-weight:700;}
+.fuel-blk{background:rgba(232,128,32,.1);border:1px solid rgba(232,128,32,.28);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.75rem;line-height:1.6;color:rgba(255,215,150,.9);}
+.fuel-blk-t{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:4px;font-weight:700;}
+.emerg-lbl{padding:12px 16px 6px;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);}
+.ec{margin:0 12px 10px;background:rgba(40,20,0,.65);border:1px solid rgba(180,100,20,.38);border-radius:10px;overflow:hidden;}
+.ec-hd{background:rgba(60,30,0,.85);padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;}
+.ec-name{font-size:.95rem;font-weight:700;color:var(--amber);line-height:1.2;}
+.ec-dist{font-size:.58rem;color:rgba(180,140,80,.7);margin-top:2px;}
+.vbdg{display:inline-block;padding:4px 9px;background:rgba(232,184,64,.12);border:1px solid rgba(232,184,64,.25);border-radius:4px;font-size:.62rem;letter-spacing:.1em;color:var(--gold);}
+.ec-body{padding:12px 14px;}
+.ec-coords{font-size:.82rem;font-weight:700;color:rgba(200,170,100,.9);margin-bottom:6px;line-height:1.8;}
+.ec-phone{font-size:.72rem;color:var(--amber);margin-bottom:6px;}
+.ec-phone a{color:var(--amber);text-decoration:none;}
+.ec-why{font-size:.72rem;color:rgba(220,180,120,.8);line-height:1.55;}
+.quick-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:12px;}
+.qa-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border-radius:12px;text-decoration:none;border:1px solid var(--border);background:linear-gradient(180deg,rgba(90,184,232,.12),rgba(14,34,53,.9));color:var(--cream);font-size:.72rem;font-weight:700;letter-spacing:.05em;min-height:58px;cursor:pointer;font-family:inherit;}
+.qa-btn:active{transform:scale(.99);}
+.nav-cta{min-height:64px;font-size:.9rem;background:linear-gradient(180deg,rgba(40,200,112,.22),rgba(18,72,44,.96));border-color:rgba(40,200,112,.42);color:#eafff3;}
+.secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mini-card{margin:0 12px 10px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.mini-hd{padding:11px 14px;background:rgba(0,20,40,.7);border-bottom:1px solid var(--border);}
+.mini-title{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);}
+.mini-body{padding:12px 14px;}
+.sel{width:100%;background:rgba(0,0,0,.42);border:1px solid var(--border);color:var(--cream);border-radius:8px;padding:11px 10px;font-size:.85rem;outline:none;-webkit-appearance:none;font-family:inherit;}
+.sel:focus{border-color:var(--sky);}
+.decision-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.decision-out{border-radius:10px;padding:12px 14px;border:1px solid var(--border);background:rgba(0,20,40,.58);margin-top:10px;}
+.decision-out.go{border-color:rgba(40,200,112,.35);background:rgba(40,200,112,.08);}
+.decision-out.caution{border-color:rgba(232,128,32,.35);background:rgba(232,128,32,.09);}
+.decision-out.nogo{border-color:rgba(232,64,48,.38);background:rgba(232,64,48,.08);}
+.decision-title{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.decision-value{font-size:1rem;font-weight:800;}
+.decision-copy{font-size:.72rem;line-height:1.6;color:rgba(240,232,208,.86);margin-top:6px;}
+.link-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.link-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;border:1px solid rgba(90,184,232,.25);background:rgba(90,184,232,.08);color:var(--sky);font-size:.68rem;text-decoration:none;}
+.tiny-note{font-size:.65rem;line-height:1.55;color:var(--muted);margin-top:8px;}
+.v2-card{margin:8px 12px;background:linear-gradient(180deg,rgba(14,34,53,.98),rgba(8,20,34,.98));border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.v2-hd{padding:12px 14px;border-bottom:1px solid rgba(90,184,232,.16);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:rgba(0,20,40,.45);}
+.v2-title{font-size:.9rem;font-weight:700;color:var(--cream);}
+.v2-sub{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.v2-body{padding:12px 14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.lblx{font-size:.54rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin:0 0 5px 2px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.stat-pill{background:rgba(90,184,232,.06);border:1px solid rgba(90,184,232,.14);border-radius:10px;padding:10px 8px;text-align:center;}
+.stat-v{font-size:1rem;font-weight:700;color:var(--gold);}
+.stat-l{font-size:.54rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.inline-note{font-size:.66rem;line-height:1.6;color:rgba(200,215,220,.72);margin-top:8px;}
+.chipbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.small-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 10px;border-radius:8px;background:rgba(90,184,232,.09);border:1px solid rgba(90,184,232,.18);color:var(--sky);font-size:.66rem;cursor:pointer;font-family:inherit;}
+.leg-grid{display:grid;grid-template-columns:1.4fr .6fr .6fr .7fr;gap:6px;align-items:center;}
+.leg-head,.leg-row{padding:8px 0;border-bottom:1px solid rgba(90,184,232,.08);}
+.leg-head div{font-size:.5rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);}
+.leg-row div{font-size:.7rem;color:var(--cream);}
+.range-ok{color:var(--green);font-weight:700;}.range-warn{color:var(--amber);font-weight:700;}.range-no{color:#ff7d72;font-weight:700;}
+.cc-card{margin:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.cc-hd{background:rgba(0,20,40,.6);border-bottom:1px solid var(--border);padding:11px 14px;}
+.cc-name{font-size:.95rem;font-weight:700;color:var(--cream);}
+.cc-sub{font-size:.58rem;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.cc-body{padding:12px 14px;}
+.pbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:rgba(40,200,112,.12);border:1px solid rgba(40,200,112,.28);border-radius:8px;color:var(--green);font-size:.78rem;font-weight:700;text-decoration:none;margin-bottom:7px;font-family:inherit;}
+.pbtn:active{background:rgba(40,200,112,.25);}
+.fc{margin:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.fr{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(38,96,140,.12);gap:10px;}
+.fr:last-child{border:none;}
+.fsi{flex:1;}
+.fmn{font-size:.82rem;font-weight:600;color:var(--cream);}
+.fmd{font-size:.58rem;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.finps{display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
+.frow{display:flex;gap:5px;align-items:center;}
+.finp{width:62px;background:rgba(0,0,0,.45);border:1px solid var(--border);border-radius:5px;color:var(--cream);font-size:.8rem;padding:7px 6px;text-align:center;-webkit-appearance:none;outline:none;font-family:inherit;}
+.finp:focus{border-color:var(--sky);}
+.ftot{font-size:.75rem;font-weight:700;color:var(--gold);min-width:48px;text-align:right;}
+.nofuel{font-size:.72rem;color:#f06050;}
+.ftbar{background:rgba(0,20,40,.8);border-top:1px solid var(--border);padding:13px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.fti{text-align:center;}
+.ftiv{font-size:1.1rem;font-weight:700;color:var(--gold);}
+.ftil{font-size:.52rem;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.alert-card{margin:8px 12px;border-radius:10px;overflow:hidden;}
+.alert-card.danger{background:rgba(232,64,48,.1);border:1px solid rgba(232,64,48,.32);}
+.alert-card.warn{background:rgba(232,128,32,.1);border:1px solid rgba(232,128,32,.28);}
+.alert-card.info{background:rgba(90,184,232,.08);border:1px solid rgba(90,184,232,.22);}
+.alert-card.ok{background:rgba(40,200,112,.08);border:1px solid rgba(40,200,112,.22);}
+.alert-inner{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
+.aic{font-size:1.35rem;flex-shrink:0;line-height:1;margin-top:1px;}
+.att{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;margin-bottom:5px;font-weight:700;}
+.danger .att{color:#f06050;}.warn .att{color:var(--amber);}.info .att{color:var(--sky);}.ok .att{color:var(--green);}
+.ab{font-size:.78rem;line-height:1.6;color:rgba(240,232,208,.85);}
+.vhf-tbl{margin:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.vhf-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(38,96,140,.15);gap:14px;}
+.vhf-row:last-child{border:none;}
+.vch{font-size:.95rem;font-weight:700;color:var(--gold);width:50px;flex-shrink:0;}
+.vch.red{color:#f06050;}
+.vuse{font-size:.72rem;color:rgba(240,232,208,.85);line-height:1.4;}
+.weather-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.weather-stat{background:rgba(90,184,232,.06);border:1px solid rgba(90,184,232,.14);border-radius:10px;padding:10px;}
+.weather-stat .k{font-size:.5rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.weather-stat .v{font-size:.95rem;font-weight:700;color:var(--cream);line-height:1.25;}
+.weather-stat .s{font-size:.64rem;color:var(--muted);margin-top:4px;line-height:1.45;}
+.weather-status{display:flex;align-items:center;gap:8px;font-size:.66rem;color:var(--muted);margin-top:8px;line-height:1.5;}
+.weather-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;}
+.weather-dot.ok{background:var(--green);}.weather-dot.bad{background:#ff7d72;}
+.weather-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.weather-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:10px;border:1px solid rgba(90,184,232,.18);background:rgba(90,184,232,.08);color:var(--sky);font-size:.68rem;font-weight:700;text-decoration:none;min-height:42px;cursor:pointer;font-family:inherit;}
+.weather-btn.gold{border-color:rgba(232,184,64,.22);background:rgba(232,184,64,.08);color:var(--gold);}
+.weather-btn.green{border-color:rgba(40,200,112,.24);background:rgba(40,200,112,.08);color:var(--green);}
+.em-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.em-btn{flex:1 1 120px;display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;padding:12px;text-decoration:none;font-weight:800;border:1px solid transparent;font-family:inherit;cursor:pointer;}
+.em-btn.red{background:rgba(232,64,48,.14);border-color:rgba(232,64,48,.35);color:#ff8f86;}
+.em-btn.amber{background:rgba(232,128,32,.12);border-color:rgba(232,128,32,.32);color:#ffc26c;}
+.em-btn.sky{background:rgba(90,184,232,.1);border-color:rgba(90,184,232,.25);color:var(--sky);}
+.pos-box{background:rgba(0,0,0,.3);border:1px solid rgba(90,184,232,.14);border-radius:10px;padding:10px 12px;margin-top:10px;}
+.pos-main{font-size:.82rem;font-weight:700;color:var(--cream);}
+.pos-sub{font-size:.66rem;color:var(--muted);margin-top:4px;line-height:1.55;}
+.brief-list{display:grid;gap:8px;margin-top:10px;}
+.brief-item{background:rgba(255,255,255,.02);border:1px solid rgba(90,184,232,.09);border-radius:10px;padding:10px 11px;}
+.brief-k{font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.brief-v{font-size:.75rem;line-height:1.55;color:var(--cream);}
+.switch{position:relative;width:52px;height:30px;background:rgba(90,184,232,.12);border:1px solid rgba(90,184,232,.2);border-radius:999px;cursor:pointer;flex-shrink:0;}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--cream);transition:transform .18s ease;}
+.switch.on{background:rgba(40,200,112,.16);border-color:rgba(40,200,112,.28);}
+.switch.on::after{transform:translateX(22px);}
+
+/* ── VESSEL PROFILE TAB ── */
+.profile-hero{background:linear-gradient(160deg,#0a1f38,#0e2a44);border-bottom:1px solid var(--border);padding:24px 20px 20px;position:relative;overflow:hidden;}
+.profile-hero::before{content:'';position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(232,184,64,.08),transparent 70%);}
+.profile-vessel-name{font-size:1.6rem;font-weight:900;color:var(--gold);letter-spacing:.02em;line-height:1.15;}
+.profile-vessel-sub{font-size:.7rem;color:var(--sky);margin-top:4px;letter-spacing:.08em;}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;}
+.ps-pill{background:rgba(0,0,0,.3);border:1px solid rgba(38,96,140,.3);border-radius:10px;padding:10px 8px;text-align:center;}
+.ps-v{font-size:1rem;font-weight:700;color:var(--cream);}
+.ps-l{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.profile-section{margin:10px 12px;}
+.profile-section-title{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(90,184,232,.12);}
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.profile-row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid rgba(38,96,140,.12);}
+.profile-row:last-child{border:none;}
+.pr-label{font-size:.68rem;color:var(--muted);}
+.pr-value{font-size:.82rem;font-weight:600;color:var(--cream);text-align:right;}
+.pr-value.gold{color:var(--gold);}
+.pr-value.sky{color:var(--sky);}
+.pr-value.green{color:var(--green);}
+.profile-edit-btn{display:block;width:calc(100% - 24px);margin:0 12px 10px;padding:13px;background:rgba(232,184,64,.1);border:1px solid rgba(232,184,64,.28);border-radius:10px;color:var(--gold);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;}
+.profile-edit-btn:active{background:rgba(232,184,64,.2);}
+
+/* profile edit form */
+.profile-edit-form{margin:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.profile-edit-title{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,rgba(232,184,64,.22),rgba(232,184,64,.08));border:1px solid rgba(232,184,64,.35);border-radius:10px;color:var(--gold);font-size:.88rem;font-weight:800;cursor:pointer;margin-top:4px;font-family:inherit;}
+.save-btn:active{background:rgba(232,184,64,.3);}
+
+@media(max-width:360px){.grid3,.stat-row,.profile-stats{grid-template-columns:1fr 1fr;}.weather-grid{grid-template-columns:1fr;}.leg-grid{grid-template-columns:1.2fr .5fr .5fr .6fr;}}
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="topbar">
+    <div id="tb-title">⚓ Helm Guide</div>
+    <div id="tb-right">
+      <div id="tb-day">Route Planner</div>
+      <div id="tb-date"></div>
+      <div id="app-status"><span id="app-status-dot"></span><span id="app-status-text">Ready</span></div>
+    </div>
+  </div>
+  <div id="content"></div>
+  <div id="bottomnav" style="display:none">
+    <button class="nt active" onclick="showTab('today')" id="tab-today"><span class="ni">🧭</span><span class="nl">Today</span></button>
+    <button class="nt" onclick="showTab('gps')" id="tab-gps"><span class="ni">📍</span><span class="nl">GPS</span></button>
+    <button class="nt" onclick="showTab('alerts')" id="tab-alerts"><span class="ni">⚠</span><span class="nl">Alerts</span></button>
+    <button class="nt" onclick="showTab('contacts')" id="tab-contacts"><span class="ni">☎</span><span class="nl">Phones</span></button>
+    <button class="nt" onclick="showTab('fuel')" id="tab-fuel"><span class="ni">⛽</span><span class="nl">Fuel</span></button>
+    <button class="nt" onclick="showTab('vessel')" id="tab-vessel"><span class="ni">🚢</span><span class="nl">Vessel</span></button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+var ST = {
+  setup:false, wizStep:0, editingStop:-1,
+  voyage:{name:'',startDate:'',endDate:''},
+  vessel:{
+    name:'',make:'',model:'',year:'',length:'',beam:'',draft:'',
+    hullType:'',engineMake:'',engineModel:'',engineCount:'1',horsepower:'',
+    tankSize:'250',speed:'10',burn:'18',vhf:'CH 9',
+    mmsi:'',documentation:'',homePort:'',insuranceProvider:'',
+    insurancePolicyNum:'',towingMembership:'',emergencyContact:'',emergencyPhone:'',
+    notes:''
+  },
+  stops:[],
+  progress:-1,
+  fuelGal:{},fuelPrice:{},
+  decision:{},
+  plan:{tankSize:'250',currentFuel:'200',reservePct:'20',speed:'10',burn:'18'},
+  crewMode:false,lastPosition:null,weather:{},
+  profileEditing:false
+};
+var curDay=0,curTab='today';
+
+function loadST(){
+  try{var s=localStorage.getItem('helmguide_v2');if(s){var p=JSON.parse(s);ST=deepMerge(ST,p);}}catch(e){}
+  curDay=ST.progress>=0?Math.min((ST.stops.length||1)-1,ST.progress):0;
+}
+function saveST(){try{localStorage.setItem('helmguide_v2',JSON.stringify(ST));}catch(e){}}
+function deepMerge(target,source){
+  var out=Object.assign({},target);
+  for(var k in source){
+    if(source[k]&&typeof source[k]==='object'&&!Array.isArray(source[k])){
+      out[k]=deepMerge(target[k]||{},source[k]);
+    }else{out[k]=source[k];}
+  }
+  return out;
+}
+
+// ═══════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════
+function boot(){
+  loadST();
+  updateNetworkStatus();
+  registerSW();
+  if(!ST.setup||!ST.stops||ST.stops.length===0){showWizard();}
+  else{showApp();}
+}
+function showWizard(){
+  document.getElementById('bottomnav').style.display='none';
+  document.getElementById('tb-day').textContent='Route Setup';
+  document.getElementById('tb-date').textContent='';
+  renderWizard();
+}
+function showApp(){
+  document.getElementById('bottomnav').style.display='flex';
+  showTab('today');
+}
+
+// ═══════════════════════════════════════════════
+//  WIZARD — STEP 1: VOYAGE
+// ═══════════════════════════════════════════════
+function renderWizard(){
+  // Show welcome screen first (before wizard)
+  if(!ST.wizStep || ST.wizStep===0){
+    renderWelcome();
+    return;
+  }
+  var step=ST.wizStep;
+  var c=document.getElementById('content');
+  var pct=Math.round(((step-1)/3)*100);
+  var labels=['Your Trip','Your Boat','Your Stops'];
+  var h='<div class="wiz">';
+  h+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+  h+='<div class="wiz-steps">';
+  for(var i=0;i<labels.length;i++){
+    var cls=i+1<step?'done':i+1===step?'active':'';
+    h+='<div class="ws '+cls+'"><div class="wsn">'+(i+1<step?'✓':(i+1))+'</div><div class="wsl">'+labels[i]+'</div></div>';
+    if(i<labels.length-1)h+='<div class="wsc"></div>';
+  }
+  h+='</div>';
+  if(step===1)h+=wizStep1();
+  else if(step===2)h+=wizStep2();
+  else if(step===3)h+=wizStep3();
+  h+='</div>';
+  c.innerHTML=h;c.scrollTop=0;
+}
+
+function renderWelcome(){
+  var c=document.getElementById('content');
+  c.innerHTML =
+    '<div class="welcome-screen">'
+    +'<div class="welcome-hero">'
+    +'<div class="welcome-anchor">⚓</div>'
+    +'<div class="welcome-title">Plan Your Boat Trip</div>'
+    +'<div class="welcome-sub">Helm Guide helps you map out every stop, get turn-by-turn routes between marinas, and stay safe on the water — even when you lose signal.</div>'
+    +'</div>'
+
+    +'<div class="feature-grid">'
+    +'<div class="feature-card"><div class="fc-icon">🗺</div><div class="fc-title">Plan Your Route</div><div class="fc-desc">Search for marinas and we\'ll fill in the GPS coordinates automatically.</div></div>'
+    +'<div class="feature-card"><div class="fc-icon">⚓</div><div class="fc-title">Emergency Harbors</div><div class="fc-desc">We suggest nearby safe harbors for every stop — just in case.</div></div>'
+    +'<div class="feature-card"><div class="fc-icon">🌦️</div><div class="fc-title">Live Weather</div><div class="fc-desc">Real-time NOAA wind and forecasts for each destination.</div></div>'
+    +'<div class="feature-card"><div class="fc-icon">⛽</div><div class="fc-title">Fuel Planner</div><div class="fc-desc">Track your fuel and get warnings before you run low.</div></div>'
+    +'</div>'
+
+    +'<div class="welcome-cta-wrap">'
+    +'<button class="welcome-cta" onclick="startWizard()">🚢 Let\'s Plan My Trip →</button>'
+    +'<div class="welcome-cta-hint">Takes about 3 minutes · Everything saves automatically</div>'
+    +'</div>'
+
+    +'<div class="welcome-steps">'
+    +'<div class="ws-title">How it works</div>'
+    +'<div class="ws-row"><div class="ws-num">1</div><div><div class="ws-label">Tell us about your trip</div><div class="ws-txt">Name your voyage and pick your dates.</div></div></div>'
+    +'<div class="ws-row"><div class="ws-num">2</div><div><div class="ws-label">Tell us about your boat</div><div class="ws-txt">Basic info like length, fuel capacity, and cruising speed.</div></div></div>'
+    +'<div class="ws-row"><div class="ws-num">3</div><div><div class="ws-label">Add your stops</div><div class="ws-txt">Search for each marina — we handle the rest.</div></div></div>'
+    +'</div>'
+
+    +'</div>';
+  c.scrollTop = 0;
+}
+
+function startWizard(){
+  ST.wizStep = 1;
+  saveST();
+  renderWizard();
+}
+
+function wizStep1(){
+  var v=ST.voyage;
+  return '<div style="text-align:center;padding:14px 0 20px">'
+    +'<div style="font-size:1.8rem;margin-bottom:8px">🗺</div>'
+    +'<div class="wiz-title" style="font-size:1.3rem">Tell us about your trip</div>'
+    +'<div class="wiz-sub">Just a name and dates — you can change these later.</div>'
+    +'</div>'
+    +'<div class="wiz-section"><div class="wiz-section-title">Trip Details</div>'
+    +'<div class="field"><label>What should we call this trip?</label><input id="w_vname" placeholder="e.g. Summer on Lake Michigan" value="'+esc(v.name||'')+'" autofocus></div>'
+    +'<div class="field-row">'
+    +'<div class="field"><label>Start Date</label><input id="w_vstart" type="date" value="'+(v.startDate||'')+'"></div>'
+    +'<div class="field"><label>End Date</label><input id="w_vend" type="date" value="'+(v.endDate||'')+'"></div>'
+    +'</div></div>'
+    +'<button class="wiz-btn primary" onclick="wizNext1()">Next: Your Boat →</button>'
+    +'<button class="wiz-btn ghost" onclick="backToWelcome()" style="margin-top:6px">← Back</button>';
+}
+function backToWelcome(){
+  ST.wizStep=0; saveST(); renderWizard();
+}
+function wizNext1(){
+  var name=document.getElementById('w_vname').value.trim();
+  if(!name){alert('Please enter a voyage name.');return;}
+  ST.voyage={name:name,startDate:document.getElementById('w_vstart').value,endDate:document.getElementById('w_vend').value};
+  ST.wizStep=2;saveST();renderWizard();
+}
+
+// ═══════════════════════════════════════════════
+//  WIZARD — STEP 2: VESSEL
+// ═══════════════════════════════════════════════
+function wizStep2(){
+  var v=ST.vessel;
+  return '<div style="text-align:center;padding:14px 0 20px">'
+    +'<div style="font-size:1.8rem;margin-bottom:8px">🚢</div>'
+    +'<div class="wiz-title" style="font-size:1.3rem">Tell us about your boat</div>'
+    +'<div class="wiz-sub">Just the basics — this helps us calculate fuel, range, and timing for your trip.</div>'
+    +'</div>'
+
+    +'<div class="wiz-section"><div class="wiz-section-title">The Basics</div>'
+    +'<div class="field"><label>Boat name</label><input id="w_bname" placeholder="e.g. Sea Breeze" value="'+esc(v.name||'')+'" autofocus></div>'
+    +'<div class="field-row">'
+    +'<div class="field"><label>Length (ft)</label><input id="w_length" type="number" inputmode="decimal" placeholder="36" value="'+(v.length||'')+'"></div>'
+    +'<div class="field"><label>Home Port</label><input id="w_homeport" placeholder="e.g. Boyne City, MI" value="'+esc(v.homePort||'')+'"></div>'
+    +'</div></div>'
+
+    +'<div class="wiz-section"><div class="wiz-section-title">Fuel & Speed <span style="color:var(--muted);font-size:.58rem;letter-spacing:.02em;text-transform:none;margin-left:6px">Used for trip planning</span></div>'
+    +'<div class="field-row3">'
+    +'<div class="field"><label>Tank Size (gal)</label><input id="w_tank" type="number" inputmode="decimal" placeholder="250" value="'+(v.tankSize||'')+'"></div>'
+    +'<div class="field"><label>Cruise Speed (kts)</label><input id="w_speed" type="number" inputmode="decimal" placeholder="10" value="'+(v.speed||'')+'"></div>'
+    +'<div class="field"><label>Burn (GPH)</label><input id="w_burn" type="number" inputmode="decimal" placeholder="18" value="'+(v.burn||'')+'"></div>'
+    +'</div>'
+    +'<div class="hint">Not sure? Leave blank and we\'ll use sensible defaults (250 gal / 10 kts / 18 GPH).</div></div>'
+
+    // ── Collapsible advanced section ──
+    +'<div class="wiz-section" style="padding:0">'
+    +'<div onclick="toggleAdvancedVessel()" id="adv-vessel-toggle" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-size:.8rem;font-weight:600;color:var(--cream)">More details</div><div style="font-size:.62rem;color:var(--muted);margin-top:2px">Make, model, engine, registration, emergency contact (optional)</div></div>'
+    +'<span id="adv-vessel-arrow" style="color:var(--muted);font-size:.9rem">▾</span>'
+    +'</div>'
+    +'<div id="adv-vessel-body" style="display:none;padding:0 16px 16px">'
+    +'<div class="field-row">'
+    +'<div class="field"><label>Make</label><input id="w_make" placeholder="e.g. Carver" value="'+esc(v.make||'')+'"></div>'
+    +'<div class="field"><label>Model</label><input id="w_model" placeholder="e.g. 3607" value="'+esc(v.model||'')+'"></div>'
+    +'</div>'
+    +'<div class="field-row3">'
+    +'<div class="field"><label>Year</label><input id="w_year" type="number" placeholder="2004" value="'+(v.year||'')+'"></div>'
+    +'<div class="field"><label>Beam (ft)</label><input id="w_beam" type="number" placeholder="13" value="'+(v.beam||'')+'"></div>'
+    +'<div class="field"><label>Draft (ft)</label><input id="w_draft" type="number" placeholder="3.5" value="'+(v.draft||'')+'"></div>'
+    +'</div>'
+    +'<div class="field"><label>Hull Type</label><select id="w_hull"><option value="">Select…</option>'
+    +['Fiberglass','Aluminum','Steel','Wood','Ferro-Cement','Composite'].map(function(t){return '<option value="'+t+'"'+(v.hullType===t?' selected':'')+'>'+t+'</option>';}).join('')
+    +'</select></div>'
+    +'<div class="field-row">'
+    +'<div class="field"><label>Engine Make</label><input id="w_emake" placeholder="e.g. Volvo Penta" value="'+esc(v.engineMake||'')+'"></div>'
+    +'<div class="field"><label>Engine Model</label><input id="w_emodel" placeholder="e.g. 5.7GXi" value="'+esc(v.engineModel||'')+'"></div>'
+    +'</div>'
+    +'<div class="field-row">'
+    +'<div class="field"><label>Engine Count</label><select id="w_ecount"><option value="1"'+(v.engineCount==='1'?' selected':'')+'>Single</option><option value="2"'+(v.engineCount==='2'?' selected':'')+'>Twin</option><option value="3"'+(v.engineCount==='3'?' selected':'')+'>Triple</option></select></div>'
+    +'<div class="field"><label>Total HP</label><input id="w_hp" type="number" placeholder="300" value="'+(v.horsepower||'')+'"></div>'
+    +'</div>'
+    +'<div class="field"><label>VHF Monitor Channel</label><input id="w_vhf" placeholder="CH 9" value="'+esc(v.vhf||'CH 9')+'"></div>'
+    +'<div class="field-row">'
+    +'<div class="field"><label>MMSI</label><input id="w_mmsi" type="number" placeholder="338XXXXXXX" value="'+(v.mmsi||'')+'"></div>'
+    +'<div class="field"><label>Doc / Reg #</label><input id="w_doc" placeholder="US Doc or State Reg #" value="'+esc(v.documentation||'')+'"></div>'
+    +'</div>'
+    +'<div class="field"><label>Towing Service</label><select id="w_tow"><option value="">None</option>'
+    +['Tow Boat US','Sea Tow','BoatUS','Other'].map(function(t){return '<option value="'+t+'"'+(v.towingMembership===t?' selected':'')+'>'+t+'</option>';}).join('')
+    +'</select></div>'
+    +'<div class="field-row">'
+    +'<div class="field"><label>Shore Contact Name</label><input id="w_emname" placeholder="e.g. Jane Smith" value="'+esc(v.emergencyContact||'')+'"></div>'
+    +'<div class="field"><label>Shore Contact Phone</label><input id="w_emphone" type="tel" placeholder="555-123-4567" value="'+esc(v.emergencyPhone||'')+'"></div>'
+    +'</div>'
+    +'<div class="field"><label>Notes</label><textarea id="w_vnotes" placeholder="Air draft, special equipment, unique quirks…">'+esc(v.notes||'')+'</textarea></div>'
+    +'</div></div>'
+
+    +'<button class="wiz-btn primary" onclick="wizNext2()">Next: Add Your Stops →</button>'
+    +'<button class="wiz-btn ghost" onclick="wizBack(1)" style="margin-top:6px">← Back</button>';
+}
+function toggleAdvancedVessel(){
+  var body=document.getElementById('adv-vessel-body');
+  var arrow=document.getElementById('adv-vessel-arrow');
+  if(!body)return;
+  if(body.style.display==='none'){body.style.display='block';if(arrow)arrow.textContent='▴';}
+  else{body.style.display='none';if(arrow)arrow.textContent='▾';}
+}
+function wizNext2(){
+  var name=document.getElementById('w_bname').value.trim();
+  if(!name){alert('Please enter your vessel name.');return;}
+  ST.vessel=Object.assign(ST.vessel,{
+    name:name,make:v('w_make'),model:v('w_model'),year:v('w_year'),
+    length:v('w_length'),beam:v('w_beam'),draft:v('w_draft'),hullType:v('w_hull'),
+    engineMake:v('w_emake'),engineModel:v('w_emodel'),engineCount:v('w_ecount'),horsepower:v('w_hp'),
+    tankSize:v('w_tank')||'250',speed:v('w_speed')||'10',burn:v('w_burn')||'18',vhf:v('w_vhf')||'CH 9',
+    mmsi:v('w_mmsi'),documentation:v('w_doc'),homePort:v('w_homeport'),
+    towingMembership:v('w_tow'),emergencyContact:v('w_emname'),emergencyPhone:v('w_emphone'),notes:v('w_vnotes')
+  });
+  ST.plan=Object.assign(ST.plan,{tankSize:ST.vessel.tankSize,speed:ST.vessel.speed,burn:ST.vessel.burn});
+  ST.wizStep=3;saveST();renderWizard();
+}
+function v(id){var el=document.getElementById(id);return el?el.value:'';}
+function wizBack(step){ST.wizStep=step;saveST();renderWizard();}
+
+// ═══════════════════════════════════════════════
+//  WIZARD — STEP 3: STOPS + EMERGENCY HARBORS
+// ═══════════════════════════════════════════════
+function wizStep3(){
+  var stops=ST.stops||[];
+  var editing=ST.editingStop>=0;
+  var es=editing?stops[ST.editingStop]:{};
+  var h='';
+
+  // Intro
+  if(stops.length===0){
+    h+='<div style="text-align:center;padding:14px 0 18px">'
+      +'<div style="font-size:1.8rem;margin-bottom:8px">📍</div>'
+      +'<div class="wiz-title" style="font-size:1.3rem">Add your stops</div>'
+      +'<div class="wiz-sub">Search for each marina or destination below.<br>We\'ll auto-fill GPS coordinates and suggest emergency harbors.</div>'
+      +'</div>';
+  }
+
+  // Existing stops with route visualization
+  if(stops.length>0){
+    h+='<div class="wiz-section" style="padding:16px">';
+    h+='<div class="wiz-section-title" style="margin-bottom:12px">📋 Your Route ('+stops.length+' stop'+(stops.length>1?'s':'')+')</div>';
+    var totalNm=0;
+    for(var i=0;i<stops.length;i++){
+      var s=stops[i];
+      var legNm = null;
+      if(i>0 && s.lat && s.lon && stops[i-1].lat && stops[i-1].lon){
+        var p1=decimalPair(stops[i-1].lat, stops[i-1].lon);
+        var p2=decimalPair(s.lat, s.lon);
+        if(p1 && p2){
+          legNm = calcDistNm(p1.lat, p1.lon, p2.lat, p2.lon);
+          totalNm += legNm;
+        }
+      }
+      // Leg between stops
+      if(i>0){
+        h+='<div style="display:flex;align-items:center;gap:10px;padding:4px 0 4px 13px;color:var(--muted);font-size:.65rem;border-left:2px dashed var(--border);margin-left:13px">';
+        h+='<span style="font-size:.8rem">↓</span>';
+        if(legNm!==null){
+          var legHrs = ST.vessel.speed ? (legNm/parseFloat(ST.vessel.speed)).toFixed(1) : '';
+          h+='<span>~'+legNm.toFixed(1)+' NM'+(legHrs?' · '+legHrs+' hrs':'')+'</span>';
+        } else {
+          h+='<span style="color:var(--muted);opacity:.6">— NM —</span>';
+        }
+        h+='</div>';
+      }
+      // Stop row
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,20,40,.5);border:1px solid var(--border);border-radius:10px;margin-bottom:0">';
+      var badge = i===0 ? '🚢' : (i===stops.length-1 ? '🏁' : (i+1));
+      h+='<div style="width:30px;height:30px;border-radius:50%;background:rgba(232,184,64,.15);border:1px solid rgba(232,184,64,.3);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0">'+badge+'</div>';
+      h+='<div style="flex:1;min-width:0">';
+      h+='<div style="font-size:.78rem;font-weight:600;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(s.name||'Stop '+(i+1))+'</div>';
+      var subtext = '';
+      if(i===0) subtext = 'Starting Point';
+      else if(i===stops.length-1) subtext = 'Final Destination';
+      else subtext = 'Stop '+(i+1);
+      if(s.emerg && s.emerg.length) subtext += ' · ⚓ '+s.emerg.length+' harbors';
+      h+='<div style="font-size:.6rem;color:var(--muted);margin-top:1px">'+subtext+'</div>';
+      h+='</div>';
+      h+='<button class="stop-edit" onclick="editStop('+i+')" style="padding:6px 10px">Edit</button>';
+      h+='<button class="stop-del" onclick="delStop('+i+')" style="padding:6px 10px">✕</button>';
+      h+='</div>';
+    }
+    if(totalNm>0){
+      var totalHrs = ST.vessel.speed ? (totalNm/parseFloat(ST.vessel.speed)).toFixed(1) : '';
+      h+='<div style="margin-top:12px;padding:10px 12px;background:rgba(232,184,64,.06);border:1px solid rgba(232,184,64,.2);border-radius:8px;text-align:center">';
+      h+='<div style="font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Total Route</div>';
+      h+='<div style="font-size:.95rem;font-weight:700;color:var(--gold)">'+totalNm.toFixed(0)+' Nautical Miles'+(totalHrs?' · ~'+totalHrs+' hrs cruising':'')+'</div>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+
+  // Stop add/edit form
+  var formTitle;
+  if(editing){
+    formTitle = ST.editingStop===0 ? '✏️ Edit Starting Point' : (ST.editingStop===stops.length-1 ? '✏️ Edit Final Destination' : '✏️ Edit Stop '+(ST.editingStop+1));
+  } else {
+    formTitle = stops.length===0 ? '🚢 Add Your Starting Point' : '➕ Add Next Stop';
+  }
+  h+='<div class="wiz-section"><div class="wiz-section-title">'+formTitle+'</div>';
+
+  // ── PLACE SEARCH ──
+  h+='<div class="field" style="position:relative">';
+  h+='<label>📍 Where to?</label>';
+  h+='<div style="display:flex;gap:8px">';
+  h+='<input id="ns_search" placeholder="'+(stops.length===0?'Search your starting marina…':'Search the next destination…')+'" value="'+esc(es.name||'')+'" oninput="placeSearchDebounce()" autocomplete="off" style="flex:1">';
+  h+='<button onclick="placeSearch()" style="padding:10px 14px;background:rgba(90,184,232,.12);border:1px solid rgba(90,184,232,.28);border-radius:8px;color:var(--sky);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">🔍 Search</button>';
+  h+='</div>';
+  h+='<div id="place-results" style="display:none;position:absolute;left:0;right:0;z-index:100;background:#0a1e34;border:1px solid rgba(90,184,232,.3);border-radius:10px;margin-top:4px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>';
+  h+='<div class="hint">Type a marina, harbor, or city name — tap a result to auto-fill coordinates.</div>';
+  h+='</div>';
+
+  // ── FILLED INDICATOR ──
+  h+='<div id="place-selected" style="display:'+(es.lat&&es.lon?'flex':'none')+';align-items:center;gap:8px;background:rgba(40,200,112,.08);border:1px solid rgba(40,200,112,.22);border-radius:8px;padding:10px 12px;margin-bottom:10px">';
+  h+='<span style="font-size:1rem">✅</span>';
+  h+='<div style="flex:1"><div style="font-size:.76rem;font-weight:600;color:var(--green)" id="place-selected-name">'+esc(es.name||'')+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:.62rem;color:var(--muted)" id="place-selected-coords">'+(es.lat&&es.lon?esc(es.lat)+' / '+esc(es.lon):'')+'</div></div>';
+  h+='<button onclick="clearPlaceSelection()" style="background:none;border:none;color:var(--muted);font-size:.72rem;cursor:pointer;padding:4px">✕ Clear</button>';
+  h+='</div>';
+
+  // Simple essential fields
+  h+='<div class="field-row">';
+  h+='<div class="field"><label>Date (optional)</label><input id="ns_date" type="date" value="'+(es.date||'')+'"></div>';
+  h+='<div class="field"><label>Phone (optional)</label><input id="ns_phone" type="tel" placeholder="231-555-1234" value="'+esc(es.phone||'')+'"></div>';
+  h+='</div>';
+
+  // Hidden simpler fields (auto-filled but editable via advanced)
+  h+='<input type="hidden" id="ns_name" value="'+esc(es.name||'')+'">';
+  h+='<input type="hidden" id="ns_marina" value="'+esc(es.marina||'')+'">';
+  h+='<input type="hidden" id="ns_lat" value="'+esc(es.lat||'')+'">';
+  h+='<input type="hidden" id="ns_lon" value="'+esc(es.lon||'')+'">';
+  h+='<input type="hidden" id="ns_vhf" value="'+esc(es.vhf||'CH 9')+'">';
+  h+='<input type="hidden" id="ns_nm" value="'+esc(es.nm||'')+'">';
+
+  // ── ADVANCED COLLAPSIBLE ──
+  h+='<div style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px">';
+  h+='<div onclick="toggleAdvancedStop()" id="adv-stop-toggle" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:8px 2px">';
+  h+='<div><div style="font-size:.74rem;font-weight:600;color:var(--cream)">More options</div><div style="font-size:.6rem;color:var(--muted);margin-top:2px">Manual coordinates, navigation notes, warnings, amenity tags, emergency harbors</div></div>';
+  h+='<span id="adv-stop-arrow" style="color:var(--muted)">▾</span></div>';
+  h+='<div id="adv-stop-body" style="display:none;padding-top:10px">';
+
+  h+='<div class="field"><label>Stop Name</label><input id="ns_name_v" value="'+esc(es.name||'')+'" oninput="document.getElementById(\'ns_name\').value=this.value"></div>';
+  h+='<div class="field"><label>Marina / Anchorage</label><input id="ns_marina_v" placeholder="e.g. Petoskey City Marina" value="'+esc(es.marina||'')+'" oninput="document.getElementById(\'ns_marina\').value=this.value"></div>';
+  h+='<div class="field-row">';
+  h+='<div class="field"><label>VHF</label><input id="ns_vhf_v" placeholder="CH 9" value="'+esc(es.vhf||'CH 9')+'" oninput="document.getElementById(\'ns_vhf\').value=this.value"></div>';
+  h+='<div class="field"><label>Distance (NM, auto)</label><input id="ns_nm_v" type="number" placeholder="auto" value="'+esc(es.nm||'')+'" oninput="document.getElementById(\'ns_nm\').value=this.value"></div>';
+  h+='</div>';
+  h+='<div class="sec-sep">GPS Coordinates</div>';
+  h+='<div class="field-row">';
+  h+='<div class="field"><label>Latitude</label><input id="ns_lat_v" placeholder="45° 22.567\'N" value="'+esc(es.lat||'')+'" oninput="document.getElementById(\'ns_lat\').value=this.value"></div>';
+  h+='<div class="field"><label>Longitude</label><input id="ns_lon_v" placeholder="084° 57.500\'W" value="'+esc(es.lon||'')+'" oninput="document.getElementById(\'ns_lon\').value=this.value"></div>';
+  h+='</div>';
+  h+='<div class="field"><label>Navigation Notes</label><textarea id="ns_nav" placeholder="Approach from west, hail on VHF…">'+esc(es.nav||'')+'</textarea></div>';
+  h+='<div class="field"><label>Fuel Note</label><textarea id="ns_fuel" style="min-height:52px" placeholder="Top off here — last fuel before…">'+esc(es.fuel||'')+'</textarea></div>';
+  h+='<div class="field"><label>Warning / Watch</label><textarea id="ns_warn" style="min-height:52px" placeholder="Ferry wakes overnight, shallow bar on approach…">'+esc(es.warn||'')+'</textarea></div>';
+
+  // Tags
+  var tags=es.tags||[];
+  h+='<div class="sec-sep">Amenity Tags</div>';
+  h+='<div class="tag-row">';
+  var tagDefs=[
+    {id:'fuel_here',label:'⛽ Fuel Here',cls:'fuel'},{id:'no_fuel',label:'⛽ No Fuel',cls:'warn'},
+    {id:'showers',label:'🚿 Showers',cls:'info'},{id:'power',label:'🔌 Shore Power',cls:'info'},
+    {id:'pumpout',label:'🔄 Pump-Out',cls:'info'},{id:'wifi',label:'📶 Wi-Fi',cls:'info'},
+    {id:'dnr',label:'🏛 DNR Harbor',cls:'info'},{id:'fill_tanks',label:'⚠ Fill Tanks!',cls:'amber'},
+    {id:'extra_fenders',label:'🛡 Extra Fenders',cls:'amber'},{id:'call_ahead',label:'📞 Call Ahead',cls:'amber'}
+  ];
+  for(var t=0;t<tagDefs.length;t++){
+    var td=tagDefs[t],on=tags.indexOf(td.id)>=0?' on':'';
+    h+='<div class="tag-chip '+td.cls+on+'" onclick="toggleWizTag(this)" data-tagid="'+td.id+'">'+td.label+'</div>';
+  }
+  h+='</div>';
+
+  // ── EMERGENCY HARBOR EDITOR ──
+  h+='<div style="margin-top:14px">';
+  h+=wizEmergencyEditor(es.emerg||[]);
+  h+='</div>';
+
+  // hidden fields for textarea/tags (ns_nav etc.) are in advanced already
+  h+='</div></div>'; // end advanced
+  h+='</div>'; // end wiz-section
+
+  // Action buttons
+  var btnLabel;
+  if(editing){
+    btnLabel = ST.editingStop===0 ? '✓ Update Starting Point' : '✓ Update Stop';
+  } else {
+    btnLabel = stops.length===0 ? '🚢 Save Starting Point' : '➕ Add This Stop';
+  }
+  h+='<button class="wiz-btn primary" onclick="saveStop()">'+btnLabel+'</button>';
+  if(editing)h+='<button class="wiz-btn ghost" onclick="cancelEditStop()">Cancel Edit</button>';
+
+  if(stops.length>=2){
+    h+='<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><button class="wiz-btn green" style="font-size:1rem;padding:16px" onclick="finishSetup()">🚢 Done! Launch My Dashboard →</button><div style="font-size:.62rem;color:var(--muted);text-align:center;margin-top:4px">You can edit or add more stops later.</div></div>';
+  }else if(stops.length===1){
+    h+='<div style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:10px">Add at least one more stop to finish.</div>';
+  }
+  h+='<div class="wiz-nav" style="margin-top:10px"><button class="wiz-btn ghost" onclick="wizBack(2)">← Back</button></div>';
+  return h;
+}
+
+function toggleAdvancedStop(){
+  var body=document.getElementById('adv-stop-body');
+  var arrow=document.getElementById('adv-stop-arrow');
+  if(!body)return;
+  if(body.style.display==='none'){body.style.display='block';if(arrow)arrow.textContent='▴';}
+  else{body.style.display='none';if(arrow)arrow.textContent='▾';}
+}
+
+function wizEmergencyEditor(emergList){
+  var h='<div class="emerg-subform">';
+  h+='<div class="emerg-subform-title">🚨 Emergency / Weather Harbors for This Stop</div>';
+
+  // ── Auto-suggest area (populated when a place is selected) ──
+  h+='<div id="emerg-suggest-area" style="margin-bottom:10px">';
+  // Only show hint if no coords selected yet
+  var hasCoords = !!(document.getElementById && document.getElementById('ns_lat') && document.getElementById('ns_lat').value);
+  h+='<div style="font-size:.64rem;color:var(--muted);line-height:1.5">'
+    +(emergList.length===0 ? 'Search for a destination above to auto-suggest nearby emergency harbors.' : '')
+    +'</div>';
+  h+='</div>';
+
+  // Existing emergency harbors for this stop
+  for(var i=0;i<emergList.length;i++){
+    var e=emergList[i];
+    h+='<div class="emerg-card">';
+    h+='<div class="emerg-card-hd"><div class="emerg-card-name">'+esc(e.name||'Harbor')+'</div>';
+    h+='<button class="emerg-card-del" onclick="delEmergHarbor('+i+')">✕ Remove</button></div>';
+    h+='<div class="emerg-card-detail">';
+    if(e.dist)h+=e.dist+' · ';
+    if(e.lat&&e.lon)h+=esc(e.lat)+' / '+esc(e.lon)+'<br>';
+    if(e.phone)h+='📞 '+esc(e.phone)+(e.vhf?' · '+esc(e.vhf):'')+'<br>';
+    if(e.why)h+='<span style="color:rgba(220,180,120,.8)">'+esc(e.why)+'</span>';
+    h+='</div></div>';
+  }
+
+  // Add form
+  h+='<div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin:10px 0 8px">'+(emergList.length>0?'Add Another Harbor':'Add Harbor')+'</div>';
+  h+='<div class="field"><label>Harbor Name</label><input id="eh_name" placeholder="e.g. Charlevoix City Marina"></div>';
+  h+='<div class="field-row">';
+  h+='<div class="field"><label>Distance / Direction</label><input id="eh_dist" placeholder="~5 NM SW"></div>';
+  h+='<div class="field"><label>VHF</label><input id="eh_vhf" placeholder="CH 9"></div>';
+  h+='</div>';
+  h+='<div class="field-row">';
+  h+='<div class="field"><label>Latitude</label><input id="eh_lat" placeholder="45° 19.098\'N"></div>';
+  h+='<div class="field"><label>Longitude</label><input id="eh_lon" placeholder="085° 15.486\'W"></div>';
+  h+='</div>';
+  h+='<div class="field"><label>Phone</label><input id="eh_phone" type="tel" inputmode="tel" placeholder="231-555-0000"></div>';
+  h+='<div class="field"><label>Why use this harbor?</label><textarea id="eh_why" style="min-height:56px" placeholder="Divert here if conditions deteriorate. Full service, fuel, protected…"></textarea></div>';
+  h+='<button class="wiz-btn secondary" style="padding:11px;font-size:.78rem;margin-bottom:0" onclick="addEmergHarbor()">＋ Add Emergency Harbor</button>';
+  h+='</div>';
+  return h;
+}
+
+function addEmergHarbor(){
+  var name=(document.getElementById('eh_name')||{}).value||'';
+  if(!name.trim()){alert('Enter a harbor name.');return;}
+  var harbor={
+    name:name.trim(),dist:v('eh_dist'),vhf:v('eh_vhf')||'CH 9',
+    lat:v('eh_lat'),lon:v('eh_lon'),phone:v('eh_phone'),why:v('eh_why')
+  };
+  var stops=ST.stops||[];
+  var idx=ST.editingStop>=0?ST.editingStop:stops.length; // staging in temp
+  if(!ST._tempEmerg)ST._tempEmerg=[];
+  ST._tempEmerg.push(harbor);
+  saveST();
+  // re-render just the emergency section
+  renderWizard();
+}
+
+function delEmergHarbor(i){
+  if(!ST._tempEmerg)return;
+  ST._tempEmerg.splice(i,1);
+  saveST();renderWizard();
+}
+
+function toggleWizTag(el){el.classList.toggle('on');}
+function getWizTags(){
+  var tags=[];
+  document.querySelectorAll('.tag-chip.on').forEach(function(el){tags.push(el.dataset.tagid);});
+  return tags;
+}
+
+function saveStop(){
+  var name=(document.getElementById('ns_name')||{}).value||'';
+  var searchVal=(document.getElementById('ns_search')||{}).value||'';
+  if(!name.trim() && !searchVal.trim()){alert('Please search for a place or enter a stop name.');return;}
+  if(!name.trim()) name = searchVal.trim();
+
+  // Build emerg list: existing (if editing) + new ones from _tempEmerg
+  var existingEmerg=[];
+  if(ST.editingStop>=0&&ST.stops[ST.editingStop]){
+    existingEmerg=ST.stops[ST.editingStop].emerg||[];
+  }
+  var newEmerg=ST._tempEmerg||[];
+
+  // Auto-calculate distance from previous stop if not provided
+  var nm = v('ns_nm');
+  var lat = v('ns_lat').trim();
+  var lon = v('ns_lon').trim();
+  if(!nm && lat && lon){
+    var idx = ST.editingStop>=0 ? ST.editingStop : (ST.stops||[]).length;
+    if(idx > 0 && ST.stops[idx-1]){
+      var prev = ST.stops[idx-1];
+      if(prev.lat && prev.lon){
+        var p1 = decimalPair(prev.lat, prev.lon);
+        var p2 = decimalPair(lat, lon);
+        if(p1 && p2){
+          nm = calcDistNm(p1.lat, p1.lon, p2.lat, p2.lon).toFixed(1);
+        }
+      }
+    }
+  }
+
+  var stop={
+    name:name.trim(),marina:v('ns_marina'),lat:lat,lon:lon,
+    date:v('ns_date'),vhf:v('ns_vhf')||'CH 9',nm:nm,phone:v('ns_phone'),
+    nav:v('ns_nav'),fuel:v('ns_fuel'),warn:v('ns_warn'),
+    tags:getWizTags(),
+    emerg:existingEmerg.concat(newEmerg)
+  };
+  if(!ST.stops)ST.stops=[];
+  if(ST.editingStop>=0){ST.stops[ST.editingStop]=stop;ST.editingStop=-1;}
+  else{ST.stops.push(stop);}
+  ST._tempEmerg=[];
+  saveST();renderWizard();
+}
+function editStop(i){
+  ST.editingStop=i;
+  ST._tempEmerg=[];
+  saveST();renderWizard();
+}
+function cancelEditStop(){ST.editingStop=-1;ST._tempEmerg=[];renderWizard();}
+function delStop(i){if(!confirm('Remove stop '+(i+1)+'?'))return;ST.stops.splice(i,1);saveST();renderWizard();}
+function finishSetup(){
+  if(!ST.stops||ST.stops.length<2){alert('Add at least 2 stops.');return;}
+  ST.setup=true;ST.wizStep=0;ST.editingStop=-1;ST._tempEmerg=[];
+  saveST();showApp();
+}
+
+// ═══════════════════════════════════════════════
+//  APP SHELL
+// ═══════════════════════════════════════════════
+function showTab(n){
+  curTab=n;
+  document.querySelectorAll('.nt').forEach(function(t){t.classList.remove('active');});
+  var e=document.getElementById('tab-'+n);if(e)e.classList.add('active');
+  renderContent();
+}
+function renderContent(){
+  var c=document.getElementById('content');if(!c)return;
+  var h='';
+  if(curTab==='today')h=rToday();
+  else if(curTab==='gps')h=rGPS();
+  else if(curTab==='alerts')h=rAlerts();
+  else if(curTab==='contacts')h=rContacts();
+  else if(curTab==='fuel')h=rFuel();
+  else if(curTab==='vessel')h=rVessel();
+  c.innerHTML=h;c.scrollTop=0;
+  updateTopbar();restoreFuel();
+  if(curTab==='today')maybeAutoFetchWeather();
+}
+function updateTopbar(){
+  var d=ST.stops[curDay];
+  document.getElementById('tb-title').textContent='⚓ '+(ST.voyage.name||'Helm Guide');
+  document.getElementById('tb-day').textContent=d?'Day '+(curDay+1)+' — '+esc(d.name):'';
+  document.getElementById('tb-date').textContent=d&&d.date?d.date:'';
+}
+
+// ═══════════════════════════════════════════════
+//  TODAY TAB
+// ═══════════════════════════════════════════════
+function rToday(){
+  var d=ST.stops[curDay];if(!d)return'<div style="padding:20px;color:var(--muted)">No stops.</div>';
+  var h='';
+  // Day tabs
+  h+='<div id="day-tabs">';
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i],a=i===curDay?' active':'';
+    var lbl=i===0?'START':(i===ST.stops.length-1?'END':'Day '+(i+1));
+    h+='<div class="dt'+a+'" onclick="selDay('+i+')"><div class="dtn">'+lbl+'</div><div class="dtd">'+(s.date?s.date.slice(5):'')+'</div></div>';
+  }
+  h+='</div>';
+  // Progress
+  h+='<div id="prog-strip"><div class="prog-lbl">Voyage Progress</div><div class="prog-row">';
+  for(var i=0;i<ST.stops.length;i++){
+    var cls=i<ST.progress?' done':i===ST.progress?' cur':'';
+    h+='<div class="ps'+cls+'" onclick="setProg('+i+')"><div class="pb"></div><div class="psl">'+(i+1)+'</div></div>';
+  }
+  h+='</div><div id="prog-txt">'+progText()+'</div></div>';
+  // Hero
+  var hrs=''; if(d.nm&&ST.vessel.speed){hrs=(parseFloat(d.nm)/parseFloat(ST.vessel.speed)).toFixed(1)+' hrs est.';}
+  h+='<div class="hero"><div class="hero-hd"><div class="hdaynum">'+(curDay+1)+'</div><div class="hright">';
+  h+='<div class="hdatestr">'+(d.date||'')+'</div><div class="hnm">'+(d.nm?d.nm+' NM':'')+'</div><div class="hhrs">'+hrs+'</div>';
+  h+='</div></div><div class="hero-body">';
+  h+='<div class="hroute-lbl">Overnight at</div><div class="hmarina">'+esc(d.marina||d.name||'')+'</div>';
+  if(d.lat&&d.lon){
+    h+='<div class="cblk"><div class="clbl">GPS Waypoint</div><div class="cnum">'+esc(d.lat)+'<br>'+esc(d.lon)+'</div>';
+    h+='<button class="copy-btn" onclick="cpCoords('+curDay+')">Copy Coordinates</button></div>';
+  }
+  var pills='';
+  if(d.nm)pills+='<div class="mpill">⇢ '+d.nm+' NM</div>';
+  if(hrs)pills+='<div class="mpill">⏰ '+hrs+'</div>';
+  if(d.vhf)pills+='<div class="mpill">'+esc(d.vhf)+'</div>';
+  if(pills)h+='<div class="metrics">'+pills+'</div>';
+  var tagMap={fuel_here:{l:'Fuel Here!',t:'tf'},no_fuel:{l:'No Fuel',t:'tw'},showers:{l:'Showers',t:'ti'},power:{l:'Shore Power',t:'ti'},pumpout:{l:'Pump-Out',t:'ti'},wifi:{l:'Wi-Fi',t:'ti'},dnr:{l:'DNR Harbor',t:'td'},fill_tanks:{l:'Fill Tanks!',t:'ta'},extra_fenders:{l:'Extra Fenders',t:'ta'},call_ahead:{l:'Call Ahead',t:'ta'}};
+  if(d.tags&&d.tags.length){
+    h+='<div class="tags">';
+    for(var t=0;t<d.tags.length;t++){var tm=tagMap[d.tags[t]];if(tm)h+='<span class="tag '+tm.t+'">'+tm.l+'</span>';}
+    h+='</div>';
+  }
+  if(d.phone)h+='<div class="cblk2"><div class="clbl2">Contact</div><div class="ctxt">📞 <a href="tel:'+d.phone.replace(/[^0-9]/g,'')+'">'+esc(d.phone)+'</a></div></div>';
+  if(d.warn)h+='<div class="warn-blk"><div class="warn-blk-t">⚠ Navigation Warning</div>'+esc(d.warn)+'</div>';
+  if(d.fuel)h+='<div class="fuel-blk"><div class="fuel-blk-t">⛽ Fuel Note</div>'+esc(d.fuel)+'</div>';
+  if(d.nav)h+='<div class="nav-blk"><div class="nav-blk-t">Navigation</div>'+esc(d.nav)+'</div>';
+  h+='</div></div>';
+  // Emergency harbors for this stop
+  if(d.emerg&&d.emerg.length){
+    h+='<div class="emerg-lbl">🚨 Emergency / Weather Harbors This Leg</div>';
+    for(var i=0;i<d.emerg.length;i++){
+      var e=d.emerg[i];
+      h+='<div class="ec"><div class="ec-hd"><div><div class="ec-name">'+esc(e.name)+'</div><div class="ec-dist">'+esc(e.dist||'')+'</div></div><div class="vbdg">'+esc(e.vhf||'CH 9')+'</div></div>';
+      h+='<div class="ec-body">';
+      if(e.lat&&e.lon)h+='<div class="ec-coords">'+esc(e.lat)+'<br>'+esc(e.lon)+'</div>';
+      if(e.phone)h+='<div class="ec-phone">📞 <a href="tel:'+e.phone.replace(/[^0-9]/g,'')+'">'+esc(e.phone)+'</a></div>';
+      if(e.why)h+='<div class="ec-why">'+esc(e.why)+'</div>';
+      h+='</div></div>';
+    }
+  }
+  h+=rQuickActions(d);
+  h+=rLiveWeatherCard();
+  h+=rDecisionCard();
+  h+=rDepartureCard();
+  h+=rFuelPlanner();
+  h+=rCrewCard();
+  h+='<div style="padding:8px 12px 2px"><button class="wiz-btn secondary" style="padding:10px;font-size:.72rem" onclick="editCurrentStop()">✏️ Edit This Stop</button></div>';
+  h+='<div style="padding:2px 12px 4px"><button class="wiz-btn danger" style="padding:10px;font-size:.72rem" onclick="resetSetup()">⚙️ Reset & Rebuild Route</button></div>';
+  h+='<div style="height:16px"></div>';
+  return h;
+}
+function selDay(i){curDay=i;if(curTab!=='today'){showTab('today');return;}renderContent();}
+function setProg(i){ST.progress=i;saveST();curDay=i;renderContent();}
+function editCurrentStop(){ST.wizStep=3;ST.editingStop=curDay;ST._tempEmerg=[];saveST();showWizard();}
+function resetSetup(){
+  if(!confirm('Clear route and restart setup?\n\nFuel log and vessel info will be preserved.'))return;
+  ST.setup=false;ST.stops=[];ST.wizStep=0;ST.editingStop=-1;ST._tempEmerg=[];ST.progress=-1;
+  saveST();showWizard();
+}
+function progText(){
+  if(ST.progress<0)return'Not yet departed — tap a segment to mark progress';
+  var s=ST.stops[ST.progress];
+  if(ST.progress===ST.stops.length-1)return'🎉 Voyage complete · Welcome to '+(s?s.name:'your destination')+'!';
+  return'Day '+(ST.progress+1)+' complete · Anchored at '+(s?s.name:'');
+}
+
+// ═══════════════════════════════════════════════
+//  GPS TAB
+// ═══════════════════════════════════════════════
+function rGPS(){
+  var h='<div class="sec-hd"><div class="sec-title">GPS Waypoints</div><div class="sec-sub">DD° MM.mmm\' — Garmin & Navionics</div></div>';
+  h+='<div style="padding:10px 12px 2px"><button class="copy-btn" style="background:rgba(232,184,64,.1);border-color:rgba(232,184,64,.3);color:var(--gold)" onclick="cpAll()">Copy All Waypoints</button></div>';
+  h+='<div style="padding:6px 14px 8px;font-size:.64rem;color:var(--muted);line-height:1.6">Navionics: Search → type e.g. 45 22.567N 84 57.500W<br>Garmin: Menu → Waypoints → New → hddd° mm.mmm\'</div>';
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i],isFirst=i===0,isLast=i===ST.stops.length-1;
+    var badge=isFirst?'S':(isLast?'D':(i+1));
+    h+='<div style="margin:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden">';
+    h+='<div style="background:rgba(0,20,40,.8);padding:12px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)">';
+    h+='<div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;background:rgba(40,200,112,.2);color:var(--green);border:2px solid rgba(40,200,112,.4);flex-shrink:0">'+badge+'</div>';
+    h+='<div><div style="font-size:.95rem;font-weight:700;color:var(--cream)">'+esc(s.name)+'</div><div style="font-size:.58rem;color:var(--muted);text-transform:uppercase;margin-top:2px">'+esc(s.marina||'')+'</div></div>';
+    h+='</div><div style="padding:12px 14px">';
+    if(s.lat&&s.lon){
+      h+='<div style="font-size:.95rem;font-weight:700;color:var(--sky);line-height:1.9;margin-bottom:5px">'+esc(s.lat)+'<br>'+esc(s.lon)+'</div>';
+      h+='<button class="copy-btn" onclick="cpWpt('+i+')">Copy Waypoint</button>';
+    }else{h+='<div style="font-size:.72rem;color:var(--muted)">No coordinates entered.</div>';}
+    // Emergency harbor coords for this stop
+    if(s.emerg&&s.emerg.length){
+      h+='<div style="margin-top:10px;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:6px">Emergency Harbors</div>';
+      for(var j=0;j<s.emerg.length;j++){
+        var e=s.emerg[j];
+        if(e.lat&&e.lon){
+          h+='<div style="background:rgba(40,20,0,.5);border:1px solid rgba(180,100,20,.25);border-radius:6px;padding:8px 10px;margin-bottom:6px">';
+          h+='<div style="font-size:.72rem;font-weight:700;color:var(--amber);margin-bottom:3px">'+esc(e.name)+'</div>';
+          h+='<div style="font-size:.82rem;color:rgba(200,170,100,.9);line-height:1.7">'+esc(e.lat)+'<br>'+esc(e.lon)+'</div>';
+          h+='<button class="copy-btn" style="margin-top:6px;border-color:rgba(232,128,32,.28);color:var(--amber)" onclick="cpEmerg('+i+','+j+')">Copy Harbor Coords</button>';
+          h+='</div>';
+        }
+      }
+    }
+    h+='</div></div>';
+  }
+  h+='<div style="height:16px"></div>';
+  return h;
+}
+
+// ═══════════════════════════════════════════════
+//  ALERTS TAB
+// ═══════════════════════════════════════════════
+function rAlerts(){
+  var h='<div class="sec-hd"><div class="sec-title">Navigation Advisories</div><div class="sec-sub">Warnings & critical info</div></div>';
+  h+=rEmergencyMode();
+  var hasAlerts=false;
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i];
+    if(s.warn){hasAlerts=true;h+='<div class="alert-card warn"><div class="alert-inner"><div class="aic">⚠️</div><div><div class="att">Day '+(i+1)+' — '+esc(s.name)+'</div><div class="ab">'+esc(s.warn)+'</div></div></div></div>';}
+    if(s.tags&&s.tags.indexOf('no_fuel')>=0){hasAlerts=true;h+='<div class="alert-card danger"><div class="alert-inner"><div class="aic">⛽</div><div><div class="att">No Fuel — Day '+(i+1)+' — '+esc(s.name)+'</div><div class="ab">No fuel at '+esc(s.marina||s.name)+'. Plan accordingly.</div></div></div></div>';}
+    if(s.tags&&s.tags.indexOf('fill_tanks')>=0){hasAlerts=true;h+='<div class="alert-card warn"><div class="alert-inner"><div class="aic">⛽</div><div><div class="att">Fill Tanks! — Day '+(i+1)+' — '+esc(s.name)+'</div><div class="ab">'+esc(s.fuel||'Top off completely at this stop.')+'</div></div></div></div>';}
+  }
+  if(!hasAlerts)h+='<div class="alert-card ok"><div class="alert-inner"><div class="aic">✅</div><div><div class="att">No Alerts</div><div class="ab">No warnings entered. Add them in Route Setup via Edit Stop.</div></div></div></div>';
+  h+='<div style="padding:8px 12px 4px;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--sky)">VHF Quick Reference</div>';
+  var V=[{ch:"CH 16",r:"red",u:"USCG Distress & Calling — Monitor Always"},{ch:"CH 9",r:"",u:"Recreational boater hailing / Marina hailing"},{ch:"WX3/4",r:"",u:"NOAA Weather — check each morning before departing"},{ch:"CH 22A",r:"",u:"US Coast Guard working channel"},{ch:"CH 13",r:"",u:"Commercial vessel bridge-to-bridge"},{ch:"CH 67",r:"",u:"Drawbridge operators (inland waterways)"}];
+  h+='<div class="vhf-tbl">';
+  for(var i=0;i<V.length;i++)h+='<div class="vhf-row"><div class="vch '+V[i].r+'">'+V[i].ch+'</div><div class="vuse">'+V[i].u+'</div></div>';
+  h+='</div><div style="height:16px"></div>';
+  return h;
+}
+
+// ═══════════════════════════════════════════════
+//  CONTACTS TAB
+// ═══════════════════════════════════════════════
+function rContacts(){
+  var h='<div class="sec-hd"><div class="sec-title">Marina Contacts</div><div class="sec-sub">Tap a number to call</div></div>';
+  var hasContacts=false;
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i];if(!s.phone)continue;
+    hasContacts=true;
+    h+='<div class="cc-card"><div class="cc-hd"><div class="cc-name">'+esc(s.marina||s.name)+'</div><div class="cc-sub">'+(i===0?'Starting Point':'Day '+(i+1)+(i===ST.stops.length-1?' — Destination':''))+'</div></div>';
+    h+='<div class="cc-body">';
+    if(s.lat&&s.lon)h+='<div style="font-size:.72rem;color:var(--sky);margin-bottom:9px">'+esc(s.lat)+'  '+esc(s.lon)+'</div>';
+    h+='<a href="tel:'+s.phone.replace(/[^0-9]/g,'')+'" class="pbtn">📞 '+esc(s.phone)+'</a>';
+    h+='<span class="vbdg">'+esc(s.vhf||'CH 9')+'</span></div></div>';
+    // Emergency harbors for this stop in contacts
+    if(s.emerg&&s.emerg.length){
+      for(var j=0;j<s.emerg.length;j++){
+        var e=s.emerg[j];if(!e.phone)continue;
+        h+='<div class="cc-card" style="margin-left:20px;border-color:rgba(232,128,32,.25)"><div class="cc-hd" style="background:rgba(60,30,0,.7)"><div class="cc-name" style="color:var(--amber)">'+esc(e.name)+'</div><div class="cc-sub">Emergency — Day '+(i+1)+'</div></div>';
+        h+='<div class="cc-body"><a href="tel:'+e.phone.replace(/[^0-9]/g,'')+'" class="pbtn" style="background:rgba(232,128,32,.12);border-color:rgba(232,128,32,.28);color:var(--amber)">📞 '+esc(e.phone)+'</a><span class="vbdg">'+esc(e.vhf||'CH 9')+'</span></div></div>';
+      }
+    }
+  }
+  if(!hasContacts)h+='<div style="padding:16px;font-size:.78rem;color:var(--muted)">No phone numbers entered. Add them in Route Setup.</div>';
+  // Emergency + vessel emergency contact
+  h+='<div style="padding:10px 12px 4px;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--amber)">Always-Available Emergency Contacts</div>';
+  var EC=[{name:'USCG Search & Rescue',phone:'800-368-5647',vhf:'CH 16 — MAYDAY'},{name:'Tow Boat US',phone:'800-391-4869',vhf:'CH 16'},{name:'Sea Tow',phone:'800-473-2869',vhf:'CH 16'}];
+  var vm=ST.vessel;
+  if(vm.emergencyContact&&vm.emergencyPhone)EC.push({name:'Shore Contact: '+vm.emergencyContact,phone:vm.emergencyPhone,vhf:'—'});
+  for(var i=0;i<EC.length;i++){
+    h+='<div class="cc-card"><div class="cc-hd"><div class="cc-name">'+esc(EC[i].name)+'</div></div>';
+    h+='<div class="cc-body"><a href="tel:'+EC[i].phone.replace(/[^0-9]/g,'')+'" class="pbtn">📞 '+esc(EC[i].phone)+'</a><span class="vbdg">'+esc(EC[i].vhf)+'</span></div></div>';
+  }
+  h+='<div style="height:16px"></div>';
+  return h;
+}
+
+// ═══════════════════════════════════════════════
+//  FUEL TAB
+// ═══════════════════════════════════════════════
+function rFuel(){
+  var tg=0,tc=0,ps=0,pc=0;
+  var fuelStops=[];
+  for(var i=0;i<ST.stops.length;i++){
+    var s=ST.stops[i],noFuel=s.tags&&s.tags.indexOf('no_fuel')>=0;
+    fuelStops.push({idx:i,name:s.marina||s.name,day:'Day '+(i+1),noFuel:noFuel,fillUp:s.tags&&s.tags.indexOf('fill_tanks')>=0});
+    if(!noFuel){var g=parseFloat(ST.fuelGal[i])||0,p2=parseFloat(ST.fuelPrice[i])||0;tg+=g;tc+=g*p2;if(p2>0){ps+=p2;pc++;}}
+  }
+  var h='<div class="sec-hd"><div class="sec-title">Fuel Tracker</div><div class="sec-sub">Gallons · Price · Cost</div></div><div class="fc">';
+  for(var i=0;i<fuelStops.length;i++){
+    var s=fuelStops[i];
+    h+='<div class="fr"><div class="fsi"><div class="fmn">'+esc(s.name)+'</div><div class="fmd" style="'+(s.fillUp?'color:var(--amber)':'')+'">'+s.day+(s.fillUp?' · FILL UP!':'')+'</div></div>';
+    if(s.noFuel){h+='<div class="nofuel">⚠ NO FUEL</div>';}
+    else{
+      var gv=ST.fuelGal[s.idx]||'',pv=ST.fuelPrice[s.idx]||'',tot=(gv&&pv)?'$'+(parseFloat(gv)*parseFloat(pv)).toFixed(2):'—';
+      h+='<div class="finps"><div class="frow"><input class="finp" type="number" min="0" inputmode="decimal" placeholder="gal" id="fg'+s.idx+'" value="'+gv+'" onchange="sF('+s.idx+',\'g\',this.value)">';
+      h+='<input class="finp" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$/gal" id="fp'+s.idx+'" value="'+pv+'" onchange="sF('+s.idx+',\'p\',this.value)"></div>';
+      h+='<div class="ftot" id="ft'+s.idx+'">'+tot+'</div></div>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="ftbar"><div class="fti"><div class="ftiv">'+tg.toFixed(0)+'</div><div class="ftil">Gallons</div></div><div class="fti"><div class="ftiv">$'+tc.toFixed(0)+'</div><div class="ftil">Total Cost</div></div><div class="fti"><div class="ftiv">'+(pc>0?'$'+(ps/pc).toFixed(2):'—')+'</div><div class="ftil">Avg/Gal</div></div></div></div>';
+  var burn=parseFloat(ST.vessel.burn)||18,speed=parseFloat(ST.vessel.speed)||10;
+  var totalNm=0;for(var i=0;i<ST.stops.length;i++)totalNm+=parseFloat(ST.stops[i].nm)||0;
+  var estGal=speed>0?((totalNm/speed)*burn):0;
+  h+='<div style="padding:10px 14px;font-size:.68rem;color:var(--muted);line-height:1.7">Est. burn: '+burn+' GPH at '+speed+' kts.'+(totalNm?' Total ~'+totalNm.toFixed(0)+' NM, est. '+estGal.toFixed(0)+' gal total.':'')+'</div>';
+  h+='<div style="height:16px"></div>';
+  return h;
+}
+function sF(id,f,vv){
+  if(f==='g')ST.fuelGal[id]=vv;else ST.fuelPrice[id]=vv;saveST();
+  var g=parseFloat(ST.fuelGal[id])||0,p2=parseFloat(ST.fuelPrice[id])||0;
+  var e=document.getElementById('ft'+id);if(e)e.textContent=(g&&p2)?'$'+(g*p2).toFixed(2):'—';
+  var tg=0,tc=0,ps=0,pc=0;
+  for(var i=0;i<ST.stops.length;i++){var s=ST.stops[i];if(s.tags&&s.tags.indexOf('no_fuel')>=0)continue;var sg=parseFloat(ST.fuelGal[i])||0,sp=parseFloat(ST.fuelPrice[i])||0;tg+=sg;tc+=sg*sp;if(sp>0){ps+=sp;pc++;}}
+  var tv=document.querySelectorAll('.ftiv');if(tv[0])tv[0].textContent=tg.toFixed(0);if(tv[1])tv[1].textContent='$'+tc.toFixed(0);if(tv[2])tv[2].textContent=pc>0?'$'+(ps/pc).toFixed(2):'—';
+}
+function restoreFuel(){for(var i=0;i<ST.stops.length;i++){var ge=document.getElementById('fg'+i),pe=document.getElementById('fp'+i);if(ge&&ST.fuelGal[i])ge.value=ST.fuelGal[i];if(pe&&ST.fuelPrice[i])pe.value=ST.fuelPrice[i];}}
+
+// ═══════════════════════════════════════════════
+//  VESSEL PROFILE TAB
+// ═══════════════════════════════════════════════
+function rVessel(){
+  var vm=ST.vessel;
+  var editing=ST.profileEditing;
+  var h='';
+
+  if(!editing){
+    // Profile display
+    h+='<div class="profile-hero">';
+    h+='<div class="profile-vessel-name">'+(vm.name||'Your Vessel')+'</div>';
+    h+='<div class="profile-vessel-sub">'+(vm.year?vm.year+' ':'')+esc(vm.make||'')+(vm.model?' '+esc(vm.model):'')+(vm.homePort?' · '+esc(vm.homePort):'')+'</div>';
+    h+='<div class="profile-stats">';
+    h+='<div class="ps-pill"><div class="ps-v">'+(vm.length?vm.length+'\'':'—')+'</div><div class="ps-l">Length</div></div>';
+    h+='<div class="ps-pill"><div class="ps-v">'+(vm.tankSize?vm.tankSize+' gal':'—')+'</div><div class="ps-l">Fuel Tank</div></div>';
+    h+='<div class="ps-pill"><div class="ps-v">'+(vm.speed?vm.speed+' kts':'—')+'</div><div class="ps-l">Cruise Speed</div></div>';
+    h+='</div></div>';
+    h+='<button class="profile-edit-btn" onclick="editVessel()">✏️ Edit Vessel Profile</button>';
+
+    // Identity
+    h+='<div class="profile-section"><div class="profile-section-title">Identity</div>';
+    h+='<div class="profile-card">';
+    h+=pr('Vessel Name',vm.name);h+=pr('Make',vm.make);h+=pr('Model',vm.model);h+=pr('Year',vm.year);
+    h+=pr('Hull Type',vm.hullType);h+=pr('Home Port',vm.homePort);
+    h+='</div></div>';
+
+    // Dimensions
+    h+='<div class="profile-section"><div class="profile-section-title">Dimensions</div>';
+    h+='<div class="profile-card">';
+    h+=pr('Length',vm.length?vm.length+' ft':'');h+=pr('Beam',vm.beam?vm.beam+' ft':'');
+    h+=pr('Draft',vm.draft?vm.draft+' ft':'');
+    h+='</div></div>';
+
+    // Engine
+    h+='<div class="profile-section"><div class="profile-section-title">Engine & Performance</div>';
+    h+='<div class="profile-card">';
+    h+=pr('Engine Make',vm.engineMake);h+=pr('Engine Model',vm.engineModel);
+    h+=pr('Configuration',vm.engineCount==='2'?'Twin Engine':vm.engineCount==='3'?'Triple Engine':'Single Engine');
+    h+=pr('Total Horsepower',vm.horsepower?vm.horsepower+' HP':'');
+    h+=pr('Cruise Speed',vm.speed?vm.speed+' kts':'');h+=pr('Fuel Burn',vm.burn?vm.burn+' GPH':'');
+    h+='</div></div>';
+
+    // Fuel & Tank
+    h+='<div class="profile-section"><div class="profile-section-title">Fuel & Tanks</div>';
+    h+='<div class="profile-card">';
+    h+=pr('Tank Size',vm.tankSize?vm.tankSize+' gal':'');
+    var range=vm.tankSize&&vm.burn&&vm.speed?(parseFloat(vm.tankSize)*0.8/parseFloat(vm.burn)*parseFloat(vm.speed)).toFixed(0)+' NM (80% tank)':'—';
+    h+=prGold('Est. Cruising Range',range);
+    h+='</div></div>';
+
+    // Registration & Safety
+    h+='<div class="profile-section"><div class="profile-section-title">Registration & Safety</div>';
+    h+='<div class="profile-card">';
+    h+=pr('MMSI Number',vm.mmsi);h+=pr('Documentation / Reg #',vm.documentation);
+    h+=pr('VHF Monitor',vm.vhf);h+=pr('Towing Membership',vm.towingMembership);
+    h+=pr('Insurance Provider',vm.insuranceProvider);h+=pr('Policy Number',vm.insurancePolicyNum);
+    h+='</div></div>';
+
+    // Emergency Contact
+    h+='<div class="profile-section"><div class="profile-section-title">Shore Emergency Contact</div>';
+    h+='<div class="profile-card">';
+    h+=pr('Contact Name',vm.emergencyContact);
+    if(vm.emergencyPhone){
+      h+='<div class="profile-row"><div class="pr-label">Phone</div>';
+      h+='<div class="pr-value sky"><a href="tel:'+vm.emergencyPhone.replace(/[^0-9]/g,'')+'" style="color:var(--sky);text-decoration:none">'+esc(vm.emergencyPhone)+'</a></div></div>';
+    }
+    h+='</div></div>';
+
+    if(vm.notes){
+      h+='<div class="profile-section"><div class="profile-section-title">Notes</div>';
+      h+='<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:.78rem;color:rgba(240,232,208,.82);line-height:1.7">'+esc(vm.notes)+'</div></div>';
+    }
+
+    // Install PWA
+    h+='<div class="profile-section"><div class="profile-section-title">Install App</div>';
+    h+='<div class="profile-card">';
+    h+='<div class="profile-row"><div class="pr-label" style="font-size:.72rem;line-height:1.55;color:rgba(240,232,208,.7)">Open in Safari → tap Share → <b style="color:var(--sky)">Add to Home Screen</b> for offline access. All data is stored locally on your device.</div></div>';
+    h+='</div></div>';
+    h+='<div style="height:16px"></div>';
+
+  } else {
+    // Edit form
+    h+='<div style="padding:12px">';
+    h+='<div class="profile-edit-form"><div class="profile-edit-title">✏️ Edit Vessel Profile</div>';
+    h+='<div class="sec-sep">Identity</div>';
+    h+='<div class="field-row"><div class="field"><label>Vessel Name</label><input class="inp" id="pf_name" value="'+esc(vm.name||'')+'"></div><div class="field"><label>Home Port</label><input class="inp" id="pf_homeport" value="'+esc(vm.homePort||'')+'"></div></div>';
+    h+='<div class="field-row"><div class="field"><label>Make</label><input class="inp" id="pf_make" value="'+esc(vm.make||'')+'"></div><div class="field"><label>Model</label><input class="inp" id="pf_model" value="'+esc(vm.model||'')+'"></div></div>';
+    h+='<div class="field-row3"><div class="field"><label>Year</label><input class="inp" id="pf_year" type="number" value="'+(vm.year||'')+'"></div><div class="field"><label>Length (ft)</label><input class="inp" id="pf_length" type="number" value="'+(vm.length||'')+'"></div><div class="field"><label>Beam (ft)</label><input class="inp" id="pf_beam" type="number" value="'+(vm.beam||'')+'"></div></div>';
+    h+='<div class="field-row"><div class="field"><label>Draft (ft)</label><input class="inp" id="pf_draft" type="number" value="'+(vm.draft||'')+'"></div><div class="field"><label>Hull Type</label><select class="inp" id="pf_hull">'+['','Fiberglass','Aluminum','Steel','Wood','Ferro-Cement','Composite'].map(function(t){return '<option value="'+t+'"'+(vm.hullType===t?' selected':'')+'>'+( t||'Select…')+'</option>';}).join('')+'</select></div></div>';
+    h+='<div class="sec-sep">Engine</div>';
+    h+='<div class="field-row"><div class="field"><label>Engine Make</label><input class="inp" id="pf_emake" value="'+esc(vm.engineMake||'')+'"></div><div class="field"><label>Engine Model</label><input class="inp" id="pf_emodel" value="'+esc(vm.engineModel||'')+'"></div></div>';
+    h+='<div class="field-row"><div class="field"><label>Engine Count</label><select class="inp" id="pf_ecount"><option value="1"'+(vm.engineCount==='1'?' selected':'')+'>Single</option><option value="2"'+(vm.engineCount==='2'?' selected':'')+'>Twin</option><option value="3"'+(vm.engineCount==='3'?' selected':'')+'>Triple</option></select></div><div class="field"><label>Total HP</label><input class="inp" id="pf_hp" type="number" value="'+(vm.horsepower||'')+'"></div></div>';
+    h+='<div class="sec-sep">Performance & Fuel</div>';
+    h+='<div class="field-row3"><div class="field"><label>Tank (gal)</label><input class="inp" id="pf_tank" type="number" value="'+(vm.tankSize||'')+'"></div><div class="field"><label>Speed (kts)</label><input class="inp" id="pf_speed" type="number" value="'+(vm.speed||'')+'"></div><div class="field"><label>Burn (GPH)</label><input class="inp" id="pf_burn" type="number" value="'+(vm.burn||'')+'"></div></div>';
+    h+='<div class="field"><label>VHF Monitor</label><input class="inp" id="pf_vhf" value="'+esc(vm.vhf||'CH 9')+'"></div>';
+    h+='<div class="sec-sep">Registration & Safety</div>';
+    h+='<div class="field-row"><div class="field"><label>MMSI</label><input class="inp" id="pf_mmsi" type="number" value="'+(vm.mmsi||'')+'"></div><div class="field"><label>Doc / Reg #</label><input class="inp" id="pf_doc" value="'+esc(vm.documentation||'')+'"></div></div>';
+    h+='<div class="field-row"><div class="field"><label>Towing Service</label><select class="inp" id="pf_tow"><option value="">None</option>'+['Tow Boat US','Sea Tow','BoatUS','Other'].map(function(t){return '<option value="'+t+'"'+(vm.towingMembership===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div><div class="field"><label>Insurance Provider</label><input class="inp" id="pf_ins" value="'+esc(vm.insuranceProvider||'')+'"></div></div>';
+    h+='<div class="field"><label>Policy Number</label><input class="inp" id="pf_insnum" value="'+esc(vm.insurancePolicyNum||'')+'"></div>';
+    h+='<div class="sec-sep">Shore Emergency Contact</div>';
+    h+='<div class="field-row"><div class="field"><label>Contact Name</label><input class="inp" id="pf_emname" value="'+esc(vm.emergencyContact||'')+'"></div><div class="field"><label>Contact Phone</label><input class="inp" id="pf_emphone" type="tel" value="'+esc(vm.emergencyPhone||'')+'"></div></div>';
+    h+='<div class="sec-sep">Notes</div>';
+    h+='<div class="field"><textarea class="inp" id="pf_notes" style="min-height:80px">'+esc(vm.notes||'')+'</textarea></div>';
+    h+='<button class="save-btn" onclick="saveVesselProfile()">✓ Save Vessel Profile</button>';
+    h+='<button class="wiz-btn ghost" style="margin-top:8px" onclick="cancelVesselEdit()">Cancel</button>';
+    h+='</div></div><div style="height:16px"></div>';
+  }
+  return h;
+}
+function pr(label,val){if(!val)return'';return'<div class="profile-row"><div class="pr-label">'+esc(label)+'</div><div class="pr-value">'+esc(val)+'</div></div>';}
+function prGold(label,val){if(!val)return'';return'<div class="profile-row"><div class="pr-label">'+esc(label)+'</div><div class="pr-value gold">'+esc(val)+'</div></div>';}
+function editVessel(){ST.profileEditing=true;renderContent();}
+function cancelVesselEdit(){ST.profileEditing=false;renderContent();}
+function saveVesselProfile(){
+  ST.vessel=Object.assign(ST.vessel,{
+    name:v('pf_name'),make:v('pf_make'),model:v('pf_model'),year:v('pf_year'),
+    length:v('pf_length'),beam:v('pf_beam'),draft:v('pf_draft'),hullType:v('pf_hull'),
+    engineMake:v('pf_emake'),engineModel:v('pf_emodel'),engineCount:v('pf_ecount'),horsepower:v('pf_hp'),
+    tankSize:v('pf_tank')||ST.vessel.tankSize,speed:v('pf_speed')||ST.vessel.speed,
+    burn:v('pf_burn')||ST.vessel.burn,vhf:v('pf_vhf')||'CH 9',
+    mmsi:v('pf_mmsi'),documentation:v('pf_doc'),towingMembership:v('pf_tow'),
+    insuranceProvider:v('pf_ins'),insurancePolicyNum:v('pf_insnum'),
+    emergencyContact:v('pf_emname'),emergencyPhone:v('pf_emphone'),notes:v('pf_notes')
+  });
+  ST.plan=Object.assign(ST.plan,{tankSize:ST.vessel.tankSize,speed:ST.vessel.speed,burn:ST.vessel.burn});
+  ST.profileEditing=false;saveST();renderContent();
+}
+
+// ═══════════════════════════════════════════════
+//  GO / NO-GO
+// ═══════════════════════════════════════════════
+function rDecisionCard(){
+  var ds=ST.decision||{};var out=getDecision();
+  return '<div class="mini-card"><div class="mini-hd"><div class="mini-title">Go / No-Go</div></div><div class="mini-body">'
+    +'<div class="decision-grid3">'
+    +'<select class="sel" id="windDirInput" onchange="saveDecision()">'+['','N','NE','E','SE','S','SW','W','NW'].map(function(v2){return'<option value="'+v2+'"'+(ds.windDir===v2?' selected':'')+'>'+(v2||'Dir')+'</option>';}).join('')+'</select>'
+    +'<input class="sel" id="windSpeedInput" type="number" inputmode="decimal" placeholder="kts" value="'+(ds.windSpeed||'')+'" onchange="saveDecision()">'
+    +'<input class="sel" id="waveInput" type="number" step="0.1" inputmode="decimal" placeholder="ft" value="'+(ds.waves||'')+'" onchange="saveDecision()">'
+    +'</div>'
+    +'<div class="decision-out '+out.state+'"><div class="decision-title">Decision</div><div class="decision-value">'+out.title+'</div><div class="decision-copy">'+out.copy+'</div></div>'
+    +'<div class="link-row"><a class="link-chip" href="https://www.ndbc.noaa.gov/" target="_blank">📡 NOAA Buoys</a><a class="link-chip" href="https://forecast.weather.gov/" target="_blank">🌦️ Forecast</a></div>'
+    +'<div class="tiny-note">Quick decision aid only. Verify with current marine forecast, buoy data, and your seamanship judgment.</div>'
+    +'</div></div>';
+}
+function saveDecision(){
+  ST.decision={windSpeed:(document.getElementById('windSpeedInput')||{}).value||'',windDir:(document.getElementById('windDirInput')||{}).value||'',waves:(document.getElementById('waveInput')||{}).value||''};
+  saveST();renderContent();
+}
+function getDecision(){
+  var d=ST.decision||{},speed=parseFloat(d.windSpeed)||0,waves=parseFloat(d.waves)||0,dir=(d.windDir||'').toUpperCase();
+  var highRiskDir=['N','NW','NE'].indexOf(dir)>=0;
+  if(waves>=4||speed>=20)return{state:'nogo',title:'NO-GO',copy:'Conditions are rough. Delay or shorten the leg.'};
+  if(highRiskDir&&speed>=15)return{state:'nogo',title:'NO-GO',copy:'Unfavorable wind at 15+ kts. Hold and wait for a better window.'};
+  if((highRiskDir&&speed>=10)||waves>=2.5||speed>=15)return{state:'caution',title:'CAUTION',copy:'Marginal conditions. Verify forecast, check buoy data, confirm backup harbors.'};
+  return{state:'go',title:'GO',copy:'Conditions look manageable based on values entered.'};
+}
+
+// ═══════════════════════════════════════════════
+//  DEPARTURE ADVISOR
+// ═══════════════════════════════════════════════
+function rDepartureCard(){
+  var d=ST.stops[curDay],rec=recommendedDeparture(d),plan=ST.plan||{};
+  return '<div class="v2-card"><div class="v2-hd"><div><div class="v2-title">Departure Advisor</div><div class="v2-sub">Smart timing for this leg</div></div><span class="vbdg">Auto</span></div><div class="v2-body">'
+    +'<div class="grid2"><div><div class="lblx">Speed (kts)</div><input id="planSpeed" class="sel" type="number" inputmode="decimal" value="'+(plan.speed||ST.vessel.speed||'10')+'" onchange="savePlan()"></div>'
+    +'<div><div class="lblx">Burn (GPH)</div><input id="planBurn" class="sel" type="number" inputmode="decimal" value="'+(plan.burn||ST.vessel.burn||'18')+'" onchange="savePlan()"></div></div>'
+    +(rec.hours>0?'<div style="margin-top:10px;border-radius:10px;padding:12px;background:rgba(40,200,112,.08);border:1px solid rgba(40,200,112,.25)"><div style="font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Recommended Depart</div><div style="font-size:1rem;font-weight:800;color:var(--green)">'+rec.departLabel+'</div><div style="font-size:.72rem;line-height:1.55;color:rgba(240,232,208,.86);margin-top:5px">Est. '+rec.hours.toFixed(1)+' hrs + ~'+rec.buffer+' hr buffer. If left now: arrive ~'+rec.arrivalLabel+'.</div></div>':'<div style="font-size:.72rem;color:var(--muted);margin-top:8px">Add distance (NM) to this stop for timing.</div>')
+    +'</div></div>';
+}
+function savePlan(){
+  ST.plan=ST.plan||{};
+  var sp=document.getElementById('planSpeed'),bu=document.getElementById('planBurn');
+  if(sp)ST.plan.speed=sp.value;if(bu)ST.plan.burn=bu.value;
+  saveST();renderContent();
+}
+function recommendedDeparture(day){
+  var plan=ST.plan||{},speed=parseFloat(plan.speed||ST.vessel.speed)||10,nm=parseFloat(day.nm)||0;
+  if(!nm)return{hours:0,departLabel:'—',arrivalLabel:'—',buffer:1};
+  var hrs=speed>0?(nm/speed):0,safety=1,targetArrival=15;
+  var dep=targetArrival-(hrs+safety),h2=Math.floor(dep),m2=Math.round((dep-h2)*60);
+  if(m2===60){h2++;m2=0;}while(h2<0)h2+=24;while(h2>=24)h2-=24;
+  var hh=((h2+11)%12)+1,ap=h2>=12?'PM':'AM';
+  return{hours:hrs,departLabel:hh+':'+String(m2).padStart(2,'0')+' '+ap,arrivalLabel:etaFromNow(hrs),buffer:safety};
+}
+function etaFromNow(hours){var d=new Date();d.setMinutes(d.getMinutes()+Math.round(hours*60));var hh=d.getHours(),mm=d.getMinutes(),ap=hh>=12?'PM':'AM';hh=hh%12||12;return hh+':'+String(mm).padStart(2,'0')+' '+ap;}
+
+// ═══════════════════════════════════════════════
+//  FUEL RANGE PLANNER
+// ═══════════════════════════════════════════════
+function getLegSafety(nm){
+  var p=ST.plan||{},tank=parseFloat(p.tankSize||ST.vessel.tankSize)||0,current=parseFloat(p.currentFuel)||0,reserve=(parseFloat(p.reservePct)||0)/100,burn=parseFloat(p.burn||ST.vessel.burn)||18,speed=parseFloat(p.speed||ST.vessel.speed)||10;
+  var usable=Math.max(0,current-(tank*reserve)),maxNm=burn>0&&speed>0?(usable/burn)*speed:0,reqGal=speed>0&&burn>0?(nm/speed)*burn:0,margin=maxNm-nm;
+  var status='NO-GO',cls='range-no';if(margin>=20){status='GOOD';cls='range-ok';}else if(margin>=0){status='TIGHT';cls='range-warn';}
+  return{usable:usable,maxNm:maxNm,reqGal:reqGal,status:status,cls:cls};
+}
+function rFuelPlanner(){
+  var p=ST.plan||{},d=ST.stops[curDay];if(!d)return'';
+  var curSafety=getLegSafety(parseFloat(d.nm)||0);
+  var h='<div class="v2-card"><div class="v2-hd"><div><div class="v2-title">Fuel Range Planner</div><div class="v2-sub">Live safety margin</div></div><span class="vbdg">Range</span></div><div class="v2-body">';
+  h+='<div class="grid3"><div><div class="lblx">Tank (gal)</div><input id="planTank" class="sel" type="number" inputmode="decimal" value="'+(p.tankSize||ST.vessel.tankSize||'250')+'" onchange="savePlanFull()"></div><div><div class="lblx">Fuel Aboard</div><input id="planFuel" class="sel" type="number" inputmode="decimal" value="'+(p.currentFuel||'200')+'" onchange="savePlanFull()"></div><div><div class="lblx">Reserve %</div><input id="planReserve" class="sel" type="number" inputmode="decimal" value="'+(p.reservePct||'20')+'" onchange="savePlanFull()"></div></div>';
+  h+='<div class="stat-row"><div class="stat-pill"><div class="stat-v">'+curSafety.maxNm.toFixed(0)+'</div><div class="stat-l">Safe Range NM</div></div><div class="stat-pill"><div class="stat-v">'+curSafety.reqGal.toFixed(0)+'</div><div class="stat-l">This Leg Gal</div></div><div class="stat-pill"><div class="stat-v '+curSafety.cls+'">'+curSafety.status+'</div><div class="stat-l">Status</div></div></div>';
+  h+='<div class="inline-note">Reset Fuel Aboard after each top-off. Planning tool only.</div>';
+  var hasNm=false;for(var i=0;i<ST.stops.length;i++)if(ST.stops[i].nm)hasNm=true;
+  if(hasNm){h+='<div class="leg-head leg-grid"><div>Leg</div><div>NM</div><div>Gal</div><div>Status</div></div>';for(var i=0;i<ST.stops.length;i++){var nm2=parseFloat(ST.stops[i].nm)||0,s2=getLegSafety(nm2);h+='<div class="leg-row leg-grid"><div>'+esc(ST.stops[i].name)+'</div><div>'+nm2.toFixed(0)+'</div><div>'+s2.reqGal.toFixed(0)+'</div><div class="'+s2.cls+'">'+s2.status+'</div></div>';}}
+  h+='</div></div>';return h;
+}
+function savePlanFull(){
+  ST.plan=ST.plan||{};
+  var ids={tankSize:'planTank',currentFuel:'planFuel',reservePct:'planReserve',speed:'planSpeed',burn:'planBurn'};
+  Object.keys(ids).forEach(function(k){var el=document.getElementById(ids[k]);if(el)ST.plan[k]=el.value;});
+  saveST();renderContent();
+}
+
+// ═══════════════════════════════════════════════
+//  CREW CARD
+// ═══════════════════════════════════════════════
+function toggleCrewMode(){ST.crewMode=!ST.crewMode;saveST();renderContent();}
+function rCrewCard(){
+  var d=ST.stops[curDay],rec=recommendedDeparture(d),sw=ST.crewMode?' on':'';
+  var h='<div class="v2-card"><div class="v2-hd"><div><div class="v2-title">Crew Brief</div><div class="v2-sub">Fast handoff mode</div></div><div class="switch'+sw+'" onclick="toggleCrewMode()"></div></div><div class="v2-body">';
+  if(!ST.crewMode){h+='<div class="inline-note">Toggle on for a stripped-down brief any crew member can read quickly.</div>';}
+  else{h+='<div class="brief-list"><div class="brief-item"><div class="brief-k">Today</div><div class="brief-v">'+esc(d.name||'')+(d.nm?' · '+d.nm+' NM':'')+' · depart around '+rec.departLabel+'</div></div><div class="brief-item"><div class="brief-k">Dock</div><div class="brief-v">'+esc(d.marina||d.name)+(d.phone?' · '+esc(d.phone):'')+'</div></div><div class="brief-item"><div class="brief-k">Primary Risk</div><div class="brief-v">'+(d.warn||'Monitor weather, traffic, and VHF before departure.')+'</div></div><div class="brief-item"><div class="brief-k">If Trouble</div><div class="brief-v">CH 16 MAYDAY. Check Alerts tab for emergency harbors and USCG contact.</div></div></div>';}
+  h+='</div></div>';return h;
+}
+
+// ═══════════════════════════════════════════════
+//  EMERGENCY MODE
+// ═══════════════════════════════════════════════
+function rEmergencyMode(){
+  var pos=ST.lastPosition,posHtml='';
+  if(pos&&pos.coords){posHtml='<div class="pos-box"><div class="pos-main">'+pos.coords.latitude.toFixed(6)+', '+pos.coords.longitude.toFixed(6)+'</div><div class="pos-sub">Updated '+new Date(pos.ts||Date.now()).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+'</div></div>';}
+  else{posHtml='<div class="pos-box"><div class="pos-main">No live position stored</div><div class="pos-sub">Tap Update GPS to save your fix.</div></div>';}
+  return'<div class="v2-card"><div class="v2-hd"><div><div class="v2-title">Emergency Mode</div><div class="v2-sub">Fast actions under pressure</div></div><span class="vbdg">SOS</span></div><div class="v2-body">'
+    +'<div class="em-row"><a class="em-btn red" href="tel:8003685647">📞 USCG</a><a class="em-btn amber" href="tel:911">911</a><button class="em-btn sky" onclick="updatePosition()">📍 Update GPS</button></div>'
+    +posHtml
+    +'<div class="chipbar"><button class="small-btn" onclick="copyCurrentPosition()">Copy Position</button><button class="small-btn" onclick="copyMaydayScript()">Copy MAYDAY</button></div>'
+    +'</div></div>';
+}
+function updatePosition(){
+  if(!navigator.geolocation){alert('Geolocation not available.');return;}
+  navigator.geolocation.getCurrentPosition(function(pos){ST.lastPosition={coords:{latitude:pos.coords.latitude,longitude:pos.coords.longitude},ts:Date.now()};saveST();renderContent();},function(err){alert('Could not get position: '+err.message);},{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+}
+function copyCurrentPosition(){if(!ST.lastPosition||!ST.lastPosition.coords){alert('Update position first.');return;}doCP(ST.lastPosition.coords.latitude.toFixed(6)+', '+ST.lastPosition.coords.longitude.toFixed(6),'Position copied!');}
+function copyMaydayScript(){doCP("MAYDAY MAYDAY MAYDAY\nThis is [vessel name]\nMy position is [insert GPS]\nNature of distress: [state problem]\nPersons aboard: [count]\nRequest immediate assistance. Over.","MAYDAY script copied!");}
+
+// ═══════════════════════════════════════════════
+//  LIVE WEATHER
+// ═══════════════════════════════════════════════
+function weatherKey(){return'd'+(curDay+1);}
+function getWeatherState(){return(ST.weather&&ST.weather[weatherKey()])||{};}
+function maybeAutoFetchWeather(){if(!navigator.onLine)return;var w=getWeatherState();if(w.loading)return;if(!w.fetchedAt||(Date.now()-w.fetchedAt)>30*60*1000){fetchLiveWeather(false);}}
+function degToCardinal(deg){deg=parseFloat(deg);if(isNaN(deg))return'';var dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return dirs[Math.round(deg/22.5)%16];}
+function parseWindSpeedKts(vv){if(vv==null)return null;var s=String(vv);var m=s.match(/([0-9]+(?:\.[0-9]+)?)/);if(!m)return null;var n=parseFloat(m[1]);return /km\/?h/i.test(s)?(n*0.539957):n;}
+function fmtTime(ts){if(!ts)return'—';try{return new Date(ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}catch(e){return'—';}}
+async function fetchLiveWeather(force){
+  var d=ST.stops[curDay],pair=decimalPair(d.lat,d.lon);
+  if(!pair){alert('No coordinates for this stop.');return;}
+  ST.weather=ST.weather||{};var key=weatherKey(),cached=ST.weather[key]||{};
+  if(!force&&cached.fetchedAt&&(Date.now()-cached.fetchedAt)<10*60*1000){renderContent();return;}
+  ST.weather[key]=Object.assign({},cached,{loading:true,error:''});saveST();renderContent();
+  try{
+    var points=await fetch('https://api.weather.gov/points/'+pair.lat.toFixed(4)+','+pair.lon.toFixed(4),{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('NWS lookup failed ('+r.status+')');return r.json();});
+    var props=points.properties||{};
+    var stationList=await fetch(props.observationStations,{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('Stations unavailable');return r.json();});
+    var station=(stationList.features&&stationList.features[0])||null;
+    if(!station)throw new Error('No nearby station found.');
+    var stationId=((station.id||'').split('/').pop())||'';
+    var obs=await fetch((station.id||('https://api.weather.gov/stations/'+stationId))+'/observations/latest',{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('Observation unavailable');return r.json();});
+    var hourly=props.forecastHourly?await fetch(props.forecastHourly,{headers:{'Accept':'application/geo+json'}}).then(function(r){if(!r.ok)throw new Error('Hourly forecast unavailable');return r.json();}):null;
+    var op=(obs.properties||{}),period=(hourly&&hourly.properties&&hourly.properties.periods&&hourly.properties.periods[0])||null;
+    ST.weather[key]={fetchedAt:Date.now(),loading:false,error:'',stationName:(station.properties&&station.properties.name)||stationId,stationId:stationId,observationTime:op.timestamp||null,currentWindDir:op.windDirection&&op.windDirection.value!=null?degToCardinal(op.windDirection.value):'',currentWindKts:op.windSpeed&&op.windSpeed.value!=null?(op.windSpeed.value*1.94384):null,currentGustKts:op.windGust&&op.windGust.value!=null?(op.windGust.value*1.94384):null,currentText:op.textDescription||'',temperatureC:op.temperature&&op.temperature.value!=null?op.temperature.value:null,forecastName:period&&period.name?period.name:'Next hour',forecastWindDir:period?period.windDirection:'',forecastWindKts:period?parseWindSpeedKts(period.windSpeed):null,forecastShort:period&&period.shortForecast?period.shortForecast:''};
+    saveST();renderContent();
+  }catch(err){ST.weather[key]=Object.assign({},cached,{loading:false,error:err.message||'Failed.',fetchedAt:Date.now()});saveST();renderContent();}
+}
+function applyWeatherToDecision(){var w=getWeatherState();if(w.currentWindKts==null&&w.forecastWindKts==null){alert('Fetch weather first.');return;}ST.decision=ST.decision||{};ST.decision.windSpeed=Math.round(w.currentWindKts!=null?w.currentWindKts:w.forecastWindKts);ST.decision.windDir=(w.currentWindDir||w.forecastWindDir||'').toUpperCase();saveST();renderContent();alert('Wind copied into GO / NO-GO. Add wave height manually.');}
+function currentStopForecastUrl(){var d=ST.stops[curDay],pair=decimalPair(d.lat,d.lon);if(!pair)return'https://forecast.weather.gov/';return'https://forecast.weather.gov/MapClick.php?lon='+encodeURIComponent(pair.lon)+'&lat='+encodeURIComponent(pair.lat);}
+function rLiveWeatherCard(){
+  var w=getWeatherState();var tempF=(w.temperatureC!=null)?((w.temperatureC*9/5)+32):null;
+  var statusClass=w.error?'bad':(w.fetchedAt?'ok':'');
+  var statusText=w.loading?'Updating from NOAA…':(w.error?('Update failed · '+w.error):(w.fetchedAt?('Updated '+fmtTime(w.fetchedAt)+' · '+(w.stationName||'NWS')):'Tap refresh to load live weather'));
+  return'<div class="v2-card"><div class="v2-hd"><div><div class="v2-title">Live Weather</div><div class="v2-sub">NOAA/NWS observations</div></div><span class="vbdg">Live</span></div><div class="v2-body">'
+    +'<div class="weather-grid">'
+    +'<div class="weather-stat"><div class="k">Current Wind</div><div class="v">'+(w.currentWindKts!=null?(Math.round(w.currentWindKts)+' kts '+(w.currentWindDir||'')):'—')+'</div><div class="s">'+(w.currentGustKts!=null?('Gusts '+Math.round(w.currentGustKts)+' kts · '):'')+(w.currentText||'')+'</div></div>'
+    +'<div class="weather-stat"><div class="k">Next Hour</div><div class="v">'+(w.forecastWindKts!=null?(Math.round(w.forecastWindKts)+' kts '+(w.forecastWindDir||'')):'—')+'</div><div class="s">'+(w.forecastShort||'Hourly forecast')+'</div></div>'
+    +'<div class="weather-stat"><div class="k">Air Temp</div><div class="v">'+(tempF!=null?(Math.round(tempF)+'°F'):'—')+'</div><div class="s">Obs: '+(w.observationTime?fmtTime(w.observationTime):'—')+'</div></div>'
+    +'<div class="weather-stat"><div class="k">Station</div><div class="v">'+(w.stationId||'NWS')+'</div><div class="s">Nearest observation point</div></div>'
+    +'</div>'
+    +'<div class="weather-status"><span class="weather-dot '+statusClass+'"></span><span>'+statusText+'</span></div>'
+    +'<div class="weather-actions"><button class="weather-btn green" onclick="fetchLiveWeather(true)">📡 Refresh</button><button class="weather-btn gold" onclick="applyWeatherToDecision()">⬇️ Use in GO/NO-GO</button><a class="weather-btn" href="'+currentStopForecastUrl()+'" target="_blank">🌦️ NOAA Forecast</a></div>'
+    +'<div style="font-size:.64rem;color:var(--muted);margin-top:8px;line-height:1.55">Wind auto-fills from nearest NWS station. Wave height requires separate buoy check.</div>'
+    +'</div></div>';
+}
+
+// ═══════════════════════════════════════════════
+//  QUICK ACTIONS
+// ═══════════════════════════════════════════════
+function rQuickActions(d){
+  var pair=decimalPair(d.lat,d.lon);
+  var mapsHref=pair?'https://maps.apple.com/?ll='+encodeURIComponent(pair.lat+','+pair.lon)+'&q='+encodeURIComponent(d.marina||d.name||'Marina'):'#';
+  return'<div class="quick-grid">'
+    +'<a class="qa-btn nav-cta" href="'+mapsHref+'" target="_blank" rel="noopener">🧭 Navigate to Marina</a>'
+    +'<button class="qa-btn" style="background:linear-gradient(180deg,rgba(90,184,232,.2),rgba(18,54,84,.96));border-color:rgba(90,184,232,.4);color:#f1fbff" onclick="navionicsCopyCurrent()">📡 Navionics Copy</button>'
+    +'<div class="secondary-grid">'
+    +'<button class="qa-btn" onclick="copyDecimalCoords()">📍 Copy Decimal</button>'
+    +(d.phone?'<a class="qa-btn" href="tel:'+d.phone.replace(/[^0-9]/g,'')+'">📞 Call Marina</a>':'<div></div>')
+    +'</div></div>';
+}
+function copyDecimalCoords(){var d=ST.stops[curDay],pair=decimalPair(d.lat,d.lon);if(!pair){alert('No coordinates.');return;}doCP(pair.lat.toFixed(6)+', '+pair.lon.toFixed(6),'Decimal coordinates copied!');}
+function navionicsCopyCurrent(){var d=ST.stops[curDay];if(!d.lat||!d.lon){alert('No coordinates.');return;}doCP(navionicsFormat(d.lat,d.lon),'Navionics coordinates copied! Paste into search.');}
+
+// ═══════════════════════════════════════════════
+//  COPY UTILS
+// ═══════════════════════════════════════════════
+function cpCoords(i){var s=ST.stops[i];doCP((s.marina||s.name)+'\nLAT: '+s.lat+'\nLON: '+s.lon,'Coordinates copied!');}
+function cpWpt(i){var s=ST.stops[i];doCP((i+1)+': '+s.name+'\nLAT: '+s.lat+'\nLON: '+s.lon,(i+1)+' copied!');}
+function cpEmerg(stopIdx,emergIdx){var e=ST.stops[stopIdx].emerg[emergIdx];doCP(e.name+'\nLAT: '+e.lat+'\nLON: '+e.lon,'Harbor coords copied!');}
+function cpAll(){
+  var lines=['=== '+((ST.voyage&&ST.voyage.name)||'HELM GUIDE')+' GPS WAYPOINTS ===',''];
+  for(var i=0;i<ST.stops.length;i++){var s=ST.stops[i];lines.push((i+1)+': '+s.name);if(s.lat&&s.lon)lines.push('  LAT: '+s.lat+'  LON: '+s.lon);lines.push('');}
+  doCP(lines.join('\n'),'All waypoints copied!');
+}
+function navionicsFormat(lat,lon){function clean(vv){return String(vv).replace(/[°º]/g,' ').replace(/['′']/g,'').replace(/[""″"]/g,'').replace(/\s+/g,' ').trim();}return clean(lat)+' '+clean(lon);}
+function doCP(t,msg){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){alert(msg);}).catch(function(){prompt('Copy:',t);});}else{prompt('Copy:',t);}}
+
+// ═══════════════════════════════════════════════
+//  COORDINATE UTILS
+// ═══════════════════════════════════════════════
+function dmmToDecimal(s){if(!s)return null;var m=String(s).match(/(\d+)[^\d]+(\d+(?:\.\d+)?)[^\d]*([NSEW])/i);if(!m)return null;var deg=parseFloat(m[1]),mins=parseFloat(m[2]),hemi=m[3].toUpperCase();var dec=deg+(mins/60);if(hemi==='S'||hemi==='W')dec*=-1;return dec;}
+function decimalPair(lat,lon){var la=dmmToDecimal(lat),lo=dmmToDecimal(lon);if(la===null||lo===null)return null;return{lat:la,lon:lo};}
+
+// ═══════════════════════════════════════════════
+//  NETWORK + SW
+// ═══════════════════════════════════════════════
+function updateNetworkStatus(){
+  var wrap=document.getElementById('app-status'),txt=document.getElementById('app-status-text');
+  if(!wrap||!txt)return;
+  if(navigator.onLine){wrap.classList.remove('offline');txt.textContent='Online';}
+  else{wrap.classList.add('offline');txt.textContent='Offline';}
+}
+async function registerSW(){
+  if(!('serviceWorker' in navigator))return;
+  try{await navigator.serviceWorker.register('./sw.js');console.log('SW registered');}catch(e){console.log('SW not registered',e);}
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══════════════════════════════════════════
+//  PLACE SEARCH (Nominatim / OpenStreetMap)
+// ═══════════════════════════════════════════
+var _searchTimer = null;
+var _lastQuery = '';
+
+function placeSearchDebounce(){
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(placeSearch, 500);
+}
+
+async function placeSearch(){
+  var inp = document.getElementById('ns_search');
+  if(!inp) return;
+  var q = inp.value.trim();
+  if(!q || q.length < 3){ hidePlaceResults(); return; }
+  if(q === _lastQuery) return;
+  _lastQuery = q;
+
+  var box = document.getElementById('place-results');
+  if(!box) return;
+  box.style.display = 'block';
+  box.innerHTML = '<div style="padding:12px 14px;font-size:.72rem;color:var(--muted)">🔍 Searching…</div>';
+
+  try {
+    // Search with marine/harbor bias keywords
+    var searchQ = q;
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(searchQ)+'&featuretype=settlement';
+    var res = await fetch(url, { headers:{ 'Accept-Language':'en', 'User-Agent':'HelmGuide/1.0' } });
+    if(!res.ok) throw new Error('Search failed');
+    var results = await res.json();
+
+    if(!results || results.length === 0){
+      box.innerHTML = '<div style="padding:12px 14px;font-size:.72rem;color:var(--muted)">No results found. Try a different search term.</div>';
+      return;
+    }
+
+    var h = '';
+    results.forEach(function(r, i){
+      var name = r.namedetails && r.namedetails.name ? r.namedetails.name : (r.display_name.split(',')[0]);
+      var addr = r.display_name;
+      var lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+      var latStr = decToNavFormat(lat, 'lat');
+      var lonStr = decToNavFormat(lon, 'lon');
+      var typeIcon = getPlaceIcon(r.type, r.class);
+      h += '<div class="place-result" onclick="selectPlace('+JSON.stringify({name:name,addr:addr,lat:latStr,lon:lonStr,display:r.display_name}).replace(/"/g,'&quot;')+','+i+')" style="padding:11px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-bottom:1px solid rgba(42,100,148,.2);transition:background .12s" onmouseover="this.style.background=\'rgba(90,184,232,.1)\'" onmouseout="this.style.background=\'\'">'+
+        '<span style="font-size:1.1rem;margin-top:1px;flex-shrink:0">'+typeIcon+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:.78rem;font-weight:600;color:var(--cream);margin-bottom:2px">'+esc(name)+'</div>'+
+        '<div style="font-size:.6rem;color:var(--muted);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(addr)+'</div>'+
+        '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:.6rem;color:var(--sky);margin-top:3px">'+latStr+' / '+lonStr+'</div>'+
+        '</div></div>';
+    });
+    box.innerHTML = h;
+
+  } catch(err) {
+    box.innerHTML = '<div style="padding:12px 14px;font-size:.72rem;color:#f06050">Search unavailable. Enter coordinates manually.</div>';
+  }
+}
+
+function selectPlace(data, idx){
+  // Fill hidden and visible fields
+  var nameEl   = document.getElementById('ns_name');
+  var nameElV  = document.getElementById('ns_name_v');
+  var marinaEl = document.getElementById('ns_marina');
+  var marinaElV= document.getElementById('ns_marina_v');
+  var latEl    = document.getElementById('ns_lat');
+  var latElV   = document.getElementById('ns_lat_v');
+  var lonEl    = document.getElementById('ns_lon');
+  var lonElV   = document.getElementById('ns_lon_v');
+  var searchEl = document.getElementById('ns_search');
+
+  // Parse display name into a clean stop name
+  var parts = data.display.split(',');
+  var stopName = parts[0].trim();
+  var marinaName = parts.slice(0,2).join(', ').trim();
+
+  if(nameEl)    nameEl.value = stopName;
+  if(nameElV)   nameElV.value = stopName;
+  if(marinaEl && !marinaEl.value) marinaEl.value = marinaName;
+  if(marinaElV && !marinaElV.value) marinaElV.value = marinaName;
+  if(latEl)     latEl.value = data.lat;
+  if(latElV)    latElV.value = data.lat;
+  if(lonEl)     lonEl.value = data.lon;
+  if(lonElV)    lonElV.value = data.lon;
+  if(searchEl)  searchEl.value = stopName;
+
+  // Show the green selected indicator
+  var sel = document.getElementById('place-selected');
+  var selName = document.getElementById('place-selected-name');
+  var selCoords = document.getElementById('place-selected-coords');
+  if(sel)       sel.style.display = 'flex';
+  if(selName)   selName.textContent = stopName;
+  if(selCoords) selCoords.textContent = data.lat + ' / ' + data.lon;
+
+  hidePlaceResults();
+  _lastQuery = '';
+
+  // ── Auto-search nearby emergency harbors ──
+  var decLat = navFormatToDecimal(data.lat);
+  var decLon = navFormatToDecimal(data.lon);
+  if(decLat !== null && decLon !== null){
+    searchNearbyEmergHarbors(decLat, decLon, stopName);
+
+    // Also auto-fill distance from previous stop
+    var idx = ST.editingStop>=0 ? ST.editingStop : (ST.stops||[]).length;
+    if(idx > 0 && ST.stops[idx-1]){
+      var prev = ST.stops[idx-1];
+      if(prev.lat && prev.lon){
+        var p1 = decimalPair(prev.lat, prev.lon);
+        if(p1){
+          var nm = calcDistNm(p1.lat, p1.lon, decLat, decLon).toFixed(1);
+          var nmEl = document.getElementById('ns_nm');
+          var nmElV = document.getElementById('ns_nm_v');
+          if(nmEl) nmEl.value = nm;
+          if(nmElV) nmElV.value = nm;
+        }
+      }
+    }
+  }
+}
+
+// Convert DD° MM.mmm'N back to decimal for API call
+function navFormatToDecimal(str){
+  if(!str) return null;
+  var m = String(str).match(/(\d+)[^\d]+(\d+(?:\.\d+)?)[^\d]*([NSEW])/i);
+  if(!m) return null;
+  var dec = parseFloat(m[1]) + parseFloat(m[2])/60;
+  if(m[3].toUpperCase()==='S'||m[3].toUpperCase()==='W') dec *= -1;
+  return dec;
+}
+
+async function searchNearbyEmergHarbors(lat, lon, stopName){
+  // Show loading state in emergency section
+  var emergSection = document.getElementById('emerg-suggest-area');
+  if(!emergSection) return;
+  emergSection.innerHTML =
+    '<div style="font-size:.68rem;color:var(--sky);padding:10px 0">🔍 Searching for nearby emergency harbors…</div>';
+
+  try {
+    // Search for marinas, harbours, boat ramps within ~50km
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=8&addressdetails=1'
+      + '&viewbox='+(lon-0.8)+','+(lat+0.6)+','+(lon+0.8)+','+(lat-0.6)
+      + '&bounded=0'
+      + '&q=marina+OR+harbour+OR+harbor+OR+boat+launch'
+      + '&lat='+lat+'&lon='+lon;
+
+    // Use Overpass API for more accurate marina/harbour results
+    var overpassUrl = 'https://overpass-api.de/api/interpreter';
+    var overpassQuery = '[out:json][timeout:15];('
+      + 'node["leisure"="marina"](around:60000,'+lat+','+lon+');'
+      + 'node["harbour"="yes"](around:60000,'+lat+','+lon+');'
+      + 'node["seamark:type"="harbour"](around:60000,'+lat+','+lon+');'
+      + 'way["leisure"="marina"](around:60000,'+lat+','+lon+');'
+      + ');out center 8;';
+
+    var res = await fetch(overpassUrl, {
+      method:'POST',
+      body:'data='+encodeURIComponent(overpassQuery),
+      headers:{'Content-Type':'application/x-www-form-urlencoded'}
+    });
+
+    if(!res.ok) throw new Error('Overpass API error');
+    var data = await res.json();
+    var elements = (data.elements||[]).filter(function(e){
+      return e.tags && (e.tags.name);
+    });
+
+    if(elements.length === 0){
+      emergSection.innerHTML =
+        '<div style="font-size:.66rem;color:var(--muted);padding:6px 0">No marinas found nearby. Add emergency harbors manually below.</div>';
+      return;
+    }
+
+    // Build suggested harbor cards
+    var h = '<div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);margin-bottom:8px">⚓ Nearby Marinas Found — Tap to Add as Emergency Harbor</div>';
+    h += '<div id="emerg-suggest-list">';
+
+    elements.forEach(function(el, i){
+      var elLat = el.lat || (el.center && el.center.lat);
+      var elLon = el.lon || (el.center && el.center.lon);
+      if(!elLat || !elLon) return;
+
+      var name = el.tags.name || 'Marina';
+      var phone = el.tags.phone || el.tags['contact:phone'] || '';
+      var distNm = calcDistNm(lat, lon, elLat, elLon);
+      var bearing = calcBearing(lat, lon, elLat, elLon);
+      var distStr = distNm.toFixed(1) + ' NM ' + bearing;
+      var latStr = decToNavFormat(elLat, 'lat');
+      var lonStr = decToNavFormat(elLon, 'lon');
+
+      // Build pre-filled harbor object
+      var harbor = {
+        name: name,
+        dist: '~' + distStr,
+        lat: latStr,
+        lon: lonStr,
+        vhf: 'CH 9',
+        phone: phone,
+        why: 'Nearest marina ~'+distStr+' from '+stopName+'. Divert here if conditions deteriorate.'
+      };
+      var harborJson = JSON.stringify(harbor).replace(/"/g,'&quot;');
+
+      h += '<div style="background:rgba(0,20,40,.7);border:1px solid rgba(90,184,232,.18);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px">'
+        + '<div style="flex:1">'
+        + '<div style="font-size:.78rem;font-weight:700;color:var(--cream)">'+esc(name)+'</div>'
+        + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:.6rem;color:var(--sky);margin-top:2px">'+latStr+' / '+lonStr+'</div>'
+        + '<div style="font-size:.62rem;color:var(--muted);margin-top:2px">'+distStr+(phone?' · 📞 '+esc(phone):'')+'</div>'
+        + '</div>'
+        + '<button onclick="addSuggestedHarbor('+harborJson+')" style="flex-shrink:0;padding:7px 12px;background:rgba(232,184,64,.12);border:1px solid rgba(232,184,64,.28);border-radius:7px;color:var(--gold);font-size:.65rem;font-weight:700;cursor:pointer;font-family:inherit">＋ Add</button>'
+        + '</div>';
+    });
+
+    h += '</div>';
+    h += '<div style="font-size:.6rem;color:var(--muted);margin-top:6px;line-height:1.5">Based on OpenStreetMap data. Verify details before relying on in an emergency.</div>';
+    emergSection.innerHTML = h;
+
+  } catch(err) {
+    emergSection.innerHTML =
+      '<div style="font-size:.66rem;color:var(--muted);padding:6px 0">Could not auto-search nearby harbors. Add them manually below.</div>';
+  }
+}
+
+function addSuggestedHarbor(harbor){
+  if(!ST._tempEmerg) ST._tempEmerg = [];
+  // Check for duplicate
+  var exists = ST._tempEmerg.some(function(e){ return e.name === harbor.name; });
+  var alsoExists = (ST.editingStop>=0 && ST.stops[ST.editingStop] && (ST.stops[ST.editingStop].emerg||[]).some(function(e){return e.name===harbor.name;}));
+  if(exists || alsoExists){ alert(harbor.name + ' is already added.'); return; }
+  ST._tempEmerg.push(harbor);
+  saveST();
+  // Just remove the clicked button and show a tick so page doesn't re-render
+  event.target.textContent = '✓ Added';
+  event.target.style.background = 'rgba(40,200,112,.15)';
+  event.target.style.borderColor = 'rgba(40,200,112,.3)';
+  event.target.style.color = 'var(--green)';
+  event.target.disabled = true;
+}
+
+// Calculate distance in nautical miles between two lat/lon points
+function calcDistNm(lat1, lon1, lat2, lon2){
+  var R = 3440.065; // Earth radius in NM
+  var dLat = (lat2-lat1)*Math.PI/180;
+  var dLon = (lon2-lon1)*Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+          Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+          Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Calculate cardinal bearing from point 1 to point 2
+function calcBearing(lat1, lon1, lat2, lon2){
+  var dLon = (lon2-lon1)*Math.PI/180;
+  var y = Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
+  var x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180) -
+          Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
+  var brng = Math.atan2(y, x)*180/Math.PI;
+  brng = (brng + 360) % 360;
+  var dirs = ['N','NE','NE','E','E','SE','SE','S','S','SW','SW','W','W','NW','NW','N'];
+  return dirs[Math.round(brng/22.5) % 16];
+}
+
+function clearPlaceSelection(){
+  var sel = document.getElementById('place-selected');
+  if(sel) sel.style.display = 'none';
+  var latEl = document.getElementById('ns_lat');
+  var lonEl = document.getElementById('ns_lon');
+  var nameEl = document.getElementById('ns_name');
+  var searchEl = document.getElementById('ns_search');
+  if(latEl) latEl.value = '';
+  if(lonEl) lonEl.value = '';
+  if(nameEl) nameEl.value = '';
+  if(searchEl) searchEl.value = '';
+  _lastQuery = '';
+}
+
+function hidePlaceResults(){
+  var box = document.getElementById('place-results');
+  if(box){ box.style.display = 'none'; box.innerHTML = ''; }
+}
+
+// Close results if tapping outside
+document.addEventListener('click', function(e){
+  var box = document.getElementById('place-results');
+  var inp = document.getElementById('ns_search');
+  if(box && inp && !box.contains(e.target) && e.target !== inp){
+    hidePlaceResults();
+  }
+});
+
+function getPlaceIcon(type, cls){
+  if(!type && !cls) return '📍';
+  var t = (type||'').toLowerCase(), c = (cls||'').toLowerCase();
+  if(t==='marina'||t==='harbour'||t==='harbor') return '⚓';
+  if(t==='bay'||t==='cove'||t==='inlet') return '🌊';
+  if(t==='island') return '🏝';
+  if(c==='waterway') return '💧';
+  if(t==='city'||t==='town'||t==='village') return '🏙';
+  if(c==='natural') return '🌿';
+  if(c==='amenity') return '🏛';
+  return '📍';
+}
+
+// Convert decimal degrees to DD° MM.mmm' N/S/E/W format
+function decToNavFormat(dec, axis){
+  var hemi = axis==='lat' ? (dec>=0?'N':'S') : (dec>=0?'E':'W');
+  var abs = Math.abs(dec);
+  var deg = Math.floor(abs);
+  var mins = (abs - deg) * 60;
+  var degStr = String(deg).padStart(axis==='lat'?2:3, '0');
+  return degStr + '° ' + mins.toFixed(3) + '\'' + hemi;
+}
+
+window.addEventListener('online',updateNetworkStatus);
+window.addEventListener('offline',updateNetworkStatus);
+window.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>

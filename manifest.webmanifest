@@ -1,0 +1,20 @@
+{
+  "name": "Helm Guide",
+  "short_name": "Helm Guide",
+  "description": "Offline-capable marine navigation dashboard for multi-day voyages",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050e18",
+  "theme_color": "#050e18",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/apple-touch-icon-180.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "categories": ["navigation", "travel", "utilities"],
+  "shortcuts": [
+    { "name": "Today", "url": "./index.html#today", "description": "Today's leg" },
+    { "name": "GPS", "url": "./index.html#gps", "description": "Waypoints" }
+  ]
+}
